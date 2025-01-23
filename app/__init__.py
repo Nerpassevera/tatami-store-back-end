@@ -6,6 +6,13 @@ from flask import Flask
 # import routes with alias
 from .db import db, migrate
 from .models import user
+from .models import order
+from .models import order_item
+from .models import product
+from .models import product_category
+from .models import category
+from .models import cart
+from .models import cart_item
 
 
 def create_app(config=None):
