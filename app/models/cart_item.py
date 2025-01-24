@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, Integer
-from uuid import UUID, uuid4
+from uuid import UUID
 from app.db import db
 from typing import TYPE_CHECKING
 
@@ -12,10 +12,11 @@ if TYPE_CHECKING:
 class CartItem(db.Model):
     __tablename__ = "cart_items"
 
-    # Fields
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    cart_id: Mapped[UUID] = mapped_column(ForeignKey("carts.id", ondelete="CASCADE"), nullable=False)
-    product_id: Mapped[UUID] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    # Composite primary key
+    cart_id: Mapped[UUID] = mapped_column(ForeignKey("carts.id", ondelete="CASCADE"), primary_key=True)
+    product_id: Mapped[UUID] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), primary_key=True)
+
+    # Other fields
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Relationships
@@ -25,7 +26,6 @@ class CartItem(db.Model):
     # Methods
     def to_dict(self):
         return {
-            "id": str(self.id),
             "cart_id": str(self.cart_id),
             "product_id": str(self.product_id),
             "quantity": self.quantity,
@@ -33,8 +33,7 @@ class CartItem(db.Model):
         }
 
     def __repr__(self):
-        return f"<CartItem {self.id} - Cart ID: {self.cart_id}, Product ID: {self.product_id}>"
-
+        return f"<CartItem(cart_id={self.cart_id}, product_id={self.product_id}, quantity={self.quantity})>"
     @classmethod
     def from_dict(cls, data):
         try:
@@ -44,4 +43,4 @@ class CartItem(db.Model):
                 quantity=data["quantity"],
             )
         except KeyError as e:
-            raise ValueError(f"Missing required field: {e}")
+            raise ValueError(f"Missing required field: {e}") from e

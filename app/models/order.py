@@ -70,7 +70,7 @@ class Order(db.Model):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="orders")
-    items: Mapped[list["OrderItem"]] = relationship(
+    order_items: Mapped[list["OrderItem"]] = relationship(
         "OrderItem", back_populates="order", cascade="all, delete-orphan"
     )
 

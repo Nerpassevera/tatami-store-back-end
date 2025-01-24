@@ -7,7 +7,7 @@ and their relationships with products through the ProductCategory association.
 from typing import Optional, TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import String
+from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import db
@@ -28,7 +28,7 @@ class Category(db.Model):
     __tablename__ = "categories"
 
     # Fields
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
@@ -36,7 +36,6 @@ class Category(db.Model):
     products: Mapped[list["ProductCategory"]] = relationship(
         "ProductCategory",
         back_populates="category",
-        lazy="select"
     )
 
     def __repr__(self) -> str:

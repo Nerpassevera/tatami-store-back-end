@@ -29,7 +29,7 @@ class ProductCategory(db.Model):
 
     # Fields
     product_id: Mapped[UUID] = mapped_column(ForeignKey("products.id"), primary_key=True)
-    category_id: Mapped[UUID] = mapped_column(ForeignKey("categories.id"), primary_key=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), primary_key=True)
 
     # Relationships
     product: Mapped["Product"] = relationship("Product", back_populates="categories")

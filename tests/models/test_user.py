@@ -3,6 +3,7 @@ from app.models.user import User, UserRole
 from uuid import uuid4
 from app.db import db
 
+
 @pytest.fixture
 def new_user():
     """Fixture to create a new User object without saving it to the database."""
@@ -16,6 +17,39 @@ def new_user():
         phone="1234567890"
     )
 
+@pytest.fixture
+def multiple_users():
+    """Fixture to create multiple User objects."""
+    users = [
+        User(
+            id=uuid4(),
+            email="user1@example.com",
+            first_name="User1",
+            last_name="One",
+            street_address="123 Test St, Test City",
+            role=UserRole.USER,
+            phone="1234567890"
+        ),
+        User(
+            id=uuid4(),
+            email="user2@example.com",
+            first_name="User2",
+            last_name="Two",
+            street_address="456 Test St, Test City",
+            role=UserRole.ADMIN,
+            phone="0987654321"
+        ),
+        User(
+            id=uuid4(),
+            email="user3@example.com",
+            first_name="User3",
+            last_name="Three",
+            street_address="789 Test St, Test City",
+            role=UserRole.USER,
+            phone="1122334455"
+        )
+    ]
+    return users
 
 def test_create_user(app, new_user):
     """Test creating and saving a new user in the database."""
@@ -31,7 +65,6 @@ def test_create_user(app, new_user):
         user = User.query.first()
         assert user.email == "testuser@example.com"
         assert user.role == UserRole.USER
-
 
 def test_update_user(app, new_user):
     """Test updating an existing user's information."""
@@ -51,7 +84,6 @@ def test_update_user(app, new_user):
         assert updated_user.first_name == "Updated"
         assert updated_user.role == UserRole.ADMIN
 
-
 def test_delete_user(app, new_user):
     """Test deleting a user from the database."""
     with app.app_context():
@@ -67,12 +99,13 @@ def test_delete_user(app, new_user):
         # Ensure the user no longer exists
         assert User.query.count() == 0
 
-
 def test_query_users(app, multiple_users):
     """Test querying multiple users from the database."""
     with app.app_context():
-        # Use the `multiple_users` fixture to add users
-        assert len(multiple_users) == 3
+        # Add users to the database
+        for user in multiple_users:
+            db.session.add(user)
+        db.session.commit()
 
         # Query all users
         users = User.query.all()
@@ -83,7 +116,6 @@ def test_query_users(app, multiple_users):
         assert user is not None
         assert user.first_name == "User1"
 
-
 def test_user_to_dict(new_user):
     """Test the `to_dict` method of the User model."""
     user_dict = new_user.to_dict()
@@ -93,7 +125,6 @@ def test_user_to_dict(new_user):
     assert user_dict["street_address"] == "123 Test St, Test City"
     assert user_dict["role"] == "User"
     assert user_dict["phone"] == "1234567890"
-
 
 def test_user_from_dict(app):
     """Test creating a user using the `from_dict` method."""
@@ -115,3 +146,9 @@ def test_user_from_dict(app):
         created_user = User.query.first()
         assert created_user.email == "newuser@example.com"
         assert created_user.role == UserRole.ADMIN
+
+def test_user_choices():
+    """Test the `choices` class method of the User model."""
+    roles = User.role_choices()
+    assert roles == ["Admin", "User"]
+

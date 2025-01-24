@@ -111,8 +111,8 @@ class User(db.Model):
             raise ValueError(f"Invalid role value: {e}") from e
 
     @classmethod
-    def choices(cls):
+    def role_choices(cls):
         """
         Class method for fetching all possible roles.
         """
-        return [role.value for role in cls]
+        return [role.value for role in UserRole]

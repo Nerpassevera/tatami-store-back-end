@@ -40,4 +40,4 @@ class Cart(db.Model):
                 user_id=data["user_id"],
             )
         except KeyError as e:
-            raise ValueError(f"Missing required field: {e}")
+            raise ValueError(f"Missing required field: {e}") from e

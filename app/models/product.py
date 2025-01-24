@@ -30,7 +30,7 @@ Methods:
 
 from uuid import UUID, uuid4
 from typing import TYPE_CHECKING
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy import String, Float, Integer
 from app.db import db
 
@@ -74,16 +74,34 @@ class Product(db.Model):
 
     # Relationships
     order_items: Mapped[list["OrderItem"]] = relationship(
-        "OrderItem", back_populates="product", lazy="dynamic"
+        "OrderItem", back_populates="product", lazy="dynamic", cascade=None
     )
     cart_items: Mapped[list["CartItem"]] = relationship(
-        "CartItem", back_populates="product", lazy="dynamic"
+        "CartItem", back_populates="product", lazy="dynamic", cascade="all, delete"
     )
     categories: Mapped[list["ProductCategory"]] = relationship(
-        "ProductCategory", back_populates="product", lazy="select"
+        "ProductCategory", back_populates="product", lazy="select", cascade="all, delete"
     )
 
-    # Methods
+    @validates("stock_quantity")
+    def validate_stock_quantity(self, key, value):
+        """
+        Validate that stock_quantity is not negative.
+        
+        Args:
+            key (str): The name of the field being validated.
+            value (int): The value to validate.
+
+        Returns:
+            int: The validated value.
+
+        Raises:
+            ValueError: If the stock_quantity is negative.
+        """
+        if value < 0:
+            raise ValueError("Stock quantity cannot be negative")
+        return value
+
     def to_dict(self) -> dict:
         """Convert the product to a dictionary representation."""
         return {
@@ -112,4 +130,15 @@ class Product(db.Model):
         return (
             f"<Product(name={self.name}, price={self.price}, "
             f"stock_quantity={self.stock_quantity})>"
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Product":
+        """Create an instance of the class from a dictionary of data."""
+        return cls(
+            name=data["name"],
+            description=data.get("description"),
+            price=data["price"],
+            stock_quantity=data["stock_quantity"] or 0,
+            image_url=data.get("image_url"),
         )
