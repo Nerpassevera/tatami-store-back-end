@@ -5,7 +5,7 @@ and their relationships with products through the ProductCategory association.
 """
 
 from typing import Optional, TYPE_CHECKING
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -49,7 +49,6 @@ class Category(db.Model):
             dict: Category data in dictionary format
         """
         return {
-            # "id": str(self.id),
             "name": self.name,
             "description": self.description
         }

@@ -25,10 +25,11 @@ Methods:
 from enum import Enum as PyEnum
 from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Optional
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Enum
-from app.db import db
 
+from app.db import db
 
 if TYPE_CHECKING:
     from app.models.order import Order

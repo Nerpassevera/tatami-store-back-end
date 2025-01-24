@@ -30,8 +30,10 @@ Methods:
 
 from uuid import UUID, uuid4
 from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy import String, Float, Integer
+
 from app.db import db
 
 if TYPE_CHECKING:
@@ -105,12 +107,10 @@ class Product(db.Model):
     def to_dict(self) -> dict:
         """Convert the product to a dictionary representation."""
         return {
-            # "id": str(self.id),
             "name": self.name,
             "description": self.description,
             "price": self.price,
             "stock_quantity": self.stock_quantity,
-            # "image_url": self.image_url,
         }
 
     def update_stock(self, quantity: int) -> None:
