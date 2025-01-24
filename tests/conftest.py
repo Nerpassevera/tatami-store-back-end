@@ -1,16 +1,18 @@
 import os
 from uuid import uuid4
 
-
 import pytest
 from dotenv import load_dotenv
 from flask import request_finished
+from faker import Faker
 
 from app import create_app
 from app.db import db
 from app.models.user import User, UserRole
 from app.models.cart import Cart
 from app.models.product import Product
+from app.models.order_item import OrderItem
+
 
 load_dotenv()
 
@@ -57,26 +59,45 @@ def client(app):
 @pytest.fixture
 def create_product():
     """Fixture to create a product."""
-    def _create_product(name="test_item", price=9.99, description=None, stock_quantity=0):
-        product = Product(name=name, price=price,
-                          description=description, stock_quantity=stock_quantity)
+    def _create_product(name=None, price=9.99, description=None, stock_quantity=0):
+        if name is None:
+            name = f"test_item_{uuid4()}"
+        product = Product(
+            name=name,
+            price=price,
+            description=description,
+            stock_quantity=stock_quantity
+        )
         db.session.add(product)
         db.session.commit()
         return product
     return _create_product
 
 
+faker = Faker()
+
 @pytest.fixture
 def create_user(app):
     """Fixture to create a user."""
     def _create_user(
-        email="testuser@example.com",
-        first_name="Test",
-        last_name="User",
-        street_address="123 Test St, Test City",
-        phone="1234567890",
+        email=None,
+        first_name=None,
+        last_name=None,
+        street_address=None,
+        phone=None,
         role=UserRole.USER
     ):
+        if email is None:
+            email = faker.email()
+        if first_name is None:
+            first_name = faker.first_name()
+        if last_name is None:
+            last_name = faker.last_name()
+        if street_address is None:
+            street_address = faker.address()
+        if phone is None:
+            phone = faker.phone_number()
+
         user = User(
             email=email,
             first_name=first_name,
@@ -152,3 +173,22 @@ def admin_user(create_user):
         last_name="Admin",
         role=UserRole.ADMIN
     )
+
+@pytest.fixture
+def create_order_item(create_product, create_order):
+    """Fixture to create an order item."""
+    def _create_order_item(order=None, product=None, quantity=1, unit_price=10.0):
+        if order is None:
+            order = create_order()
+        if product is None:
+            product = create_product()
+        order_item = OrderItem(
+            order_id=order.id,
+            product_id=product.id,
+            quantity=quantity,
+            unit_price=unit_price
+        )
+        db.session.add(order_item)
+        db.session.commit()
+        return order_item
+    return _create_order_item
