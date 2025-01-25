@@ -32,7 +32,7 @@ from uuid import UUID, uuid4
 from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
-from sqlalchemy import String, Float, Integer
+from sqlalchemy import String, Float, Integer, Boolean
 
 from app.db import db
 
@@ -53,9 +53,11 @@ class Product(db.Model):
             price (float): The price of the product.
             stock_quantity (int): The quantity of the product in stock.
             image_url (str, optional): The URL of the product's image.
+            is_active (bool): Flag indicating whether the product is active.
             order_items (list[OrderItem]): The order items associated with the product.
             cart_items (list[CartItem]): The cart items associated with the product.
             categories (list[ProductCategory]): The categories associated with the product.
+
 
         Methods:
             to_dict() -> dict:
@@ -69,10 +71,11 @@ class Product(db.Model):
     # Fields
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-    description: Mapped[str] = mapped_column(String, nullable=True)
+    description: Mapped[str] = mapped_column(String(1000), nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
     stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    image_url: Mapped[str] = mapped_column(String, nullable=True)
+    image_url: Mapped[str] = mapped_column(String(2048), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
     order_items: Mapped[list["OrderItem"]] = relationship(
@@ -107,10 +110,12 @@ class Product(db.Model):
     def to_dict(self) -> dict:
         """Convert the product to a dictionary representation."""
         return {
+            "id": str(self.id),
             "name": self.name,
             "description": self.description,
             "price": self.price,
             "stock_quantity": self.stock_quantity,
+            "is_active": self.is_active,
         }
 
     def update_stock(self, quantity: int) -> None:
@@ -134,11 +139,28 @@ class Product(db.Model):
 
     @classmethod
     def from_dict(cls, data: dict) -> "Product":
-        """Create an instance of the class from a dictionary of data."""
+        """
+        Create an instance of the class from a dictionary of data.
+        
+        Args:
+            data (dict): A dictionary containing product data.
+
+        Returns:
+            Product: An instance of the Product class.
+
+        Raises:
+            ValueError: If a required field is missing.
+        """
+        required_fields = ["name", "price", "stock_quantity"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+        
         return cls(
             name=data["name"],
             description=data.get("description"),
             price=data["price"],
             stock_quantity=data["stock_quantity"] or 0,
             image_url=data.get("image_url"),
+            is_active=data.get("is_active", True),
         )
