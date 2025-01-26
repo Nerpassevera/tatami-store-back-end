@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask import Flask
 
 # import routes with alias
+from .routes.user_routes import bp as user_bp
 from .db import db, migrate
 from .models import user
 from .models import order
@@ -32,6 +33,6 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints here
-    # app.register_blueprint(bp_name)
+    app.register_blueprint(user_bp)
 
     return app
