@@ -5,6 +5,11 @@ from flask import Flask
 
 # import routes with alias
 from .routes.user_routes import bp as user_bp
+from .routes.product_routes import bp as product_bp
+from .routes.cart_routes import bp as cart_bp
+from .routes.order_routes import bp as order_bp
+from .routes.category_routes import bp as category_bp
+
 from .db import db, migrate
 from .models import user
 from .models import order
@@ -14,6 +19,7 @@ from .models import product_category
 from .models import category
 from .models import cart
 from .models import cart_item
+from .models import address
 
 
 def create_app(config=None):
@@ -34,5 +40,9 @@ def create_app(config=None):
 
     # Register Blueprints here
     app.register_blueprint(user_bp)
+    app.register_blueprint(product_bp)
+    app.register_blueprint(cart_bp)
+    app.register_blueprint(order_bp)
+    app.register_blueprint(category_bp)
 
     return app

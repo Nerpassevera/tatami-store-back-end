@@ -64,14 +64,14 @@ def test_product_cascade_deletion_for_product_category(app, create_product):
 
 def test_product_creation(app):
     """Test creating a product."""
-    product = Product(name="Test Product", price=10.0, description="Sample product", stock_quantity=5)
+    product = Product(name="Test Product", price=10.0, description="Sample product", stock=5)
     db.session.add(product)
     db.session.commit()
 
     assert Product.query.count() == 1
     assert product.name == "Test Product"
     assert product.price == 10.0
-    assert product.stock_quantity == 5
+    assert product.stock == 5
 
 
 def test_product_update(app, create_product):
@@ -129,7 +129,7 @@ def test_product_deletion_does_not_affect_other_products(app, create_product):
 def test_product_stock_quantity_validation(app, create_product):
     """Test product stock quantity cannot be negative."""
     with pytest.raises(ValueError):
-        create_product("Invalid Product", 10.0, stock_quantity=-5)
+        create_product("Invalid Product", 10.0, stock=-5)
 
 
 def test_product_to_dict_method(app, create_product):
@@ -140,4 +140,4 @@ def test_product_to_dict_method(app, create_product):
     assert product_dict["name"] == "Test Product"
     assert product_dict["price"] == 25.0
     assert product_dict["description"] == "A product for testing"
-    assert product_dict["stock_quantity"] == 10
+    assert product_dict["stock"] == 10

@@ -1,8 +1,27 @@
+"""
+This module provides services for managing users in the application, including creating users with carts,
+retrieving users, updating user information, and deleting users with specific behaviors based on their roles.
+
+Functions:
+    create_user_with_cart(user_data: dict, role: str = "User") -> User:
+
+    get_all_users() -> list[User]:
+
+    get_user_by_id(user_id: UUID) -> User:
+
+    update_user(user_id: UUID, updated_data: dict) -> User:
+
+    delete_user(user_id: UUID) -> str:
+"""
+
 from uuid import UUID
 from datetime import datetime
 from app.models.user import User, UserRole
 from app.models.cart import Cart
-from app.db import db  # SQLAlchemy session
+from app.db import db
+from app.services.utility_functions import validate_model
+from sqlalchemy.exc import SQLAlchemyError
+from uuid import UUID
 
 def create_user_with_cart(user_data: dict, role: str = "User") -> User:
     """
@@ -18,14 +37,11 @@ def create_user_with_cart(user_data: dict, role: str = "User") -> User:
     Raises:
         Exception: In case of a failed transaction.
     """
-    print(user_data)
     try:
         # Start a transaction
         with db.session.begin():
             # Create the user
-            # new_user = User(**user_data, role=role)
             new_user = User.from_dict(user_data)
-            print(new_user.to_dict())
             db.session.add(new_user)
 
             # Create a cart for the user
@@ -33,26 +49,38 @@ def create_user_with_cart(user_data: dict, role: str = "User") -> User:
             db.session.add(user_cart)
 
         return new_user
+
     except Exception as e:
         db.session.rollback()
-        raise e
+        raise Exception(f"Error creating user with cart: {str(e)}")
 
 
-def get_all_users() -> list[User]:
+def get_all_users(active_only: bool = False, limit: int = None) -> list[User]:
     """
-    Retrieves all users from the database.
+    Retrieve a list of users from the database.
+
+    Args:
+        active_only (bool): If True, only retrieve active users. Defaults to False.
+        limit (int): The maximum number of users to retrieve. If None, retrieve all users. Defaults to None.
 
     Returns:
-        list[User]: A list of all users in the database.
+        list[User]: A list of User objects.
+
+    Raises:
+        Exception: If there is an error retrieving users from the database.
     """
     try:
-        users = db.session.query(User).all()
-        return users
-    except Exception as e:
+        query = db.session.query(User)
+        if active_only:
+            query = query.filter_by(is_active=True)
+        if limit:
+            query = query.limit(limit)
+        return query.all()
+    except SQLAlchemyError as e:
         raise Exception(f"Error retrieving users: {str(e)}")
 
 
-def get_user_by_id(user_id: UUID) -> User:
+def get_user_by_id(user_id: UUID) -> User:  # Rewrite this function!
     """
     Retrieves a single user by their ID.
 
@@ -65,13 +93,7 @@ def get_user_by_id(user_id: UUID) -> User:
     Raises:
         Exception: If the user is not found or another error occurs.
     """
-    try:
-        user = db.session.query(User).filter_by(id=user_id).first()
-        if not user:
-            raise Exception(f"User with ID {user_id} not found.")
-        return user
-    except Exception as e:
-        raise Exception(f"Error retrieving user with ID {user_id}: {str(e)}")
+    return validate_model(user_id, User)
 
 
 def update_user(user_id: UUID, updated_data: dict) -> User:
@@ -89,9 +111,7 @@ def update_user(user_id: UUID, updated_data: dict) -> User:
         Exception: If the user is not found or another error occurs.
     """
     try:
-        user = db.session.query(User).filter_by(id=user_id).first()
-        if not user:
-            raise Exception(f"User with ID {user_id} not found.")
+        user = validate_model(user_id, User)
 
         for key, value in updated_data.items():
             if hasattr(user, key):
@@ -99,7 +119,7 @@ def update_user(user_id: UUID, updated_data: dict) -> User:
 
         db.session.commit()
         return user
-    except Exception as e:
+    except SQLAlchemyError as e:
         db.session.rollback()
         raise Exception(f"Error updating user with ID {user_id}: {str(e)}")
 
@@ -121,9 +141,7 @@ def delete_user(user_id: UUID) -> str:
         Exception: If the user is not found or another error occurs.
     """
     try:
-        user = db.session.query(User).filter_by(id=user_id).first()
-        if not user:
-            raise Exception(f"User with ID {user_id} not found.")
+        user = validate_model(user_id, User)
 
         # Block deletion if the user is an Admin
         if user.role == UserRole.ADMIN:
@@ -138,7 +156,7 @@ def delete_user(user_id: UUID) -> str:
             user.phone = "000-000-0000"
             user.is_active = False
             user.deleted_at = datetime.now()
-            
+
             # Delete the user's cart
             cart = db.session.query(Cart).filter_by(user_id=user.id).first()
             db.session.delete(cart)

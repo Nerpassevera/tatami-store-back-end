@@ -12,26 +12,14 @@ from app.models.user import User, UserRole
 from app.models.cart import Cart
 from app.models.product import Product
 from app.models.order_item import OrderItem
-
+from app.models.address import Address
 
 load_dotenv()
-
+faker = Faker()
 
 @pytest.fixture
 def app():
-    """
-    Create and configure a new instance of the Flask application for testing.
-
-    This fixture sets up the Flask application with a test configuration, 
-    including setting the `TESTING` flag to True and configuring the 
-    SQLAlchemy database URI from an environment variable. It also ensures 
-    that the database is created before tests run and dropped after tests 
-    complete.
-
-    Yields:
-        flask.Flask: The configured Flask application instance.
-    """
-    # create the app with a test configuration
+    """Create and configure a new instance of the Flask application for testing."""
     test_config = {
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": os.environ.get('SQLALCHEMY_TEST_DATABASE_URI')
@@ -46,7 +34,6 @@ def app():
         db.create_all()
         yield flask_app
 
-    # close and remove the temporary database
     with flask_app.app_context():
         db.drop_all()
 
@@ -59,14 +46,14 @@ def client(app):
 @pytest.fixture
 def create_product():
     """Fixture to create a product."""
-    def _create_product(name=None, price=9.99, description=None, stock_quantity=0):
+    def _create_product(name=None, price=9.99, description=None, stock=0):
         if name is None:
             name = f"test_item_{uuid4()}"
         product = Product(
             name=name,
             price=price,
             description=description,
-            stock_quantity=stock_quantity
+            stock=stock
         )
         db.session.add(product)
         db.session.commit()
@@ -74,46 +61,73 @@ def create_product():
     return _create_product
 
 
-faker = Faker()
+@pytest.fixture
+def create_address():
+    """Fixture to create an address without requiring a user."""
+    def _create_address(
+        user_id,
+        label="Home",
+        house_number=None,
+        road=None,
+        city=None,
+        state=None,
+        postcode=None,
+        country=None
+    ):
+        if user_id is None:
+            raise ValueError("Missing required field: user_id")
+
+        house_number = house_number or faker.building_number()
+        road = road or faker.street_name()
+        city = city or faker.city()
+        state = state or faker.state()
+        postcode = postcode or faker.postcode()
+        country = country or faker.country()
+
+        address = Address(
+            user_id=user_id,
+            label=label,
+            house_number=house_number,
+            road=road,
+            city=city,
+            state=state,
+            postcode=postcode,
+            country=country
+        )
+        db.session.add(address)
+        db.session.commit()
+        return address
+    return _create_address
+
 
 @pytest.fixture
-def create_user(app):
-    """Fixture to create a user."""
-    def _create_user(
-        email=None,
-        first_name=None,
-        last_name=None,
-        street_address=None,
-        phone=None,
-        role=UserRole.USER
-    ):
-        if email is None:
-            email = faker.email()
-        if first_name is None:
-            first_name = faker.first_name()
-        if last_name is None:
-            last_name = faker.last_name()
-        if street_address is None:
-            street_address = faker.address()
-        if phone is None:
-            phone = faker.phone_number()
+def create_user(create_address):
+    """Fixture to create a user with an associated address."""
+    def _create_user(email=None, first_name=None, last_name=None, phone=None, role=UserRole.USER):
+        email = email or faker.email()
+        first_name = first_name or faker.first_name()
+        last_name = last_name or faker.last_name()
+        phone = phone or faker.phone_number()
 
         user = User(
             email=email,
             first_name=first_name,
             last_name=last_name,
-            street_address=street_address,
             phone=phone,
             role=role
         )
         db.session.add(user)
         db.session.commit()
+
+        # Create an associated address for the user
+        create_address(user_id=user.id)
+
         return user
     return _create_user
 
 
 @pytest.fixture
-def create_cart(app, create_user):
+def create_cart(create_user):
     """Fixture to create a cart for a user."""
     def _create_cart(user=None):
         if user is None:
@@ -126,58 +140,26 @@ def create_cart(app, create_user):
 
 
 @pytest.fixture
-def one_user(app, create_user):
-    """Fixture to create a single user."""
-    return create_user()
-
-
-@pytest.fixture
-def multiple_users(app):
-    """Fixture to create multiple users."""
+def multiple_users(create_user):
+    """Fixture to create multiple users with associated addresses."""
     users = [
-        User(
-            email="admin@example.com",
-            first_name="Admin",
-            last_name="User",
-            street_address="1 Admin Rd, Admin City",
-            role=UserRole.ADMIN,
-            phone="9876543210",
-        ),
-        User(
-            email="user1@example.com",
-            first_name="User1",
-            last_name="Test",
-            street_address="456 User Ln, Test Town",
-            role=UserRole.USER,
-            phone="1231231234",
-        ),
-        User(
-            email="user2@example.com",
-            first_name="User2",
-            last_name="Example",
-            street_address="789 Example Ave, Sample City",
-            role=UserRole.USER,
-            phone="3213214321",
-        ),
+        create_user(email="admin@example.com", first_name="Admin", last_name="User", role=UserRole.ADMIN, phone="9876543210"),
+        create_user(email="user1@example.com", first_name="User1", last_name="Test", role=UserRole.USER, phone="1231231234"),
+        create_user(email="user2@example.com", first_name="User2", last_name="Example", role=UserRole.USER, phone="3213214321"),
     ]
-    db.session.add_all(users)
-    db.session.commit()
     return users
 
 
 @pytest.fixture
 def admin_user(create_user):
-    return create_user(
-        email="superadmin@example.com",
-        first_name="Super",
-        last_name="Admin",
-        role=UserRole.ADMIN
-    )
+    """Fixture to create an admin user."""
+    return create_user(email="superadmin@example.com", first_name="Super", last_name="Admin", role=UserRole.ADMIN)
+
 
 @pytest.fixture
 def create_order_item(create_product, create_order):
     """Fixture to create an order item."""
-    def _create_order_item(order=None, product=None, quantity=1, unit_price=10.0):
+    def _create_order_item(order=None, product=None, quantity=1, price=10.0):
         if order is None:
             order = create_order()
         if product is None:
@@ -186,7 +168,7 @@ def create_order_item(create_product, create_order):
             order_id=order.id,
             product_id=product.id,
             quantity=quantity,
-            unit_price=unit_price
+            price=price
         )
         db.session.add(order_item)
         db.session.commit()
