@@ -14,7 +14,7 @@ Fields:
     name (str): The name of the product.
     description (str): A description of the product.
     price (float): The price of the product.
-    stock_quantity (int): The quantity of the product in stock.
+    stock (int): The quantity of the product in stock.
     image_url (str): The URL of the product's image.
 
 Relationships:
@@ -51,7 +51,7 @@ class Product(db.Model):
             name (str): The name of the product.
             description (str, optional): A description of the product.
             price (float): The price of the product.
-            stock_quantity (int): The quantity of the product in stock.
+            stock (int): The quantity of the product in stock.
             image_url (str, optional): The URL of the product's image.
             is_active (bool): Flag indicating whether the product is active.
             order_items (list[OrderItem]): The order items associated with the product.
@@ -73,7 +73,7 @@ class Product(db.Model):
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     description: Mapped[str] = mapped_column(String(1000), nullable=True)
     price: Mapped[float] = mapped_column(Float, nullable=False)
-    stock_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    stock: Mapped[int] = mapped_column(Integer, nullable=False)
     image_url: Mapped[str] = mapped_column(String(2048), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -88,10 +88,10 @@ class Product(db.Model):
         "ProductCategory", back_populates="product", lazy="select", cascade="all, delete"
     )
 
-    @validates("stock_quantity")
-    def validate_stock_quantity(self, key, value):
+    @validates("stock")
+    def validate_stock(self, key, value):
         """
-        Validate that stock_quantity is not negative.
+        Validate that stock is not negative.
         
         Args:
             key (str): The name of the field being validated.
@@ -101,24 +101,24 @@ class Product(db.Model):
             int: The validated value.
 
         Raises:
-            ValueError: If the stock_quantity is negative.
+            ValueError: If the stock is negative.
         """
         if value < 0:
             raise ValueError("Stock quantity cannot be negative")
         return value
 
-    def to_dict(self) -> dict:
-        """Convert the product to a dictionary representation."""
-        return {
-            "id": str(self.id),
-            "name": self.name,
-            "description": self.description,
-            "price": self.price,
-            "stock_quantity": self.stock_quantity,
-            "is_active": self.is_active,
-        }
+    # def to_dict(self) -> dict:
+    #     """Convert the product to a dictionary representation."""
+    #     return {
+    #         "id": str(self.id),
+    #         "name": self.name,
+    #         "description": self.description,
+    #         "price": self.price,
+    #         "stock": self.stock,
+    #         "is_active": self.is_active,
+    #     }
 
-    def update_stock(self, quantity: int) -> None:
+    def update_stock(self, stock: int) -> None:
         """Update the stock quantity by a specified amount.
 
         Args:
@@ -127,40 +127,40 @@ class Product(db.Model):
         Raises:
             ValueError: If the resulting stock quantity would be negative.
         """
-        if self.stock_quantity + quantity < 0:
+        if self.stock + stock < 0:
             raise ValueError("Stock quantity cannot be negative.")
-        self.stock_quantity += quantity
+        self.stock += stock
 
-    def __repr__(self) -> str:
-        return (
-            f"<Product(name={self.name}, price={self.price}, "
-            f"stock_quantity={self.stock_quantity})>"
-        )
+    # def __repr__(self) -> str:
+    #     return (
+    #         f"<Product(name={self.name}, price={self.price}, "
+    #         f"stock={self.stock})>"
+    #     )
 
-    @classmethod
-    def from_dict(cls, data: dict) -> "Product":
-        """
-        Create an instance of the class from a dictionary of data.
+    # @classmethod
+    # def from_dict(cls, data: dict) -> "Product":
+    #     """
+    #     Create an instance of the class from a dictionary of data.
         
-        Args:
-            data (dict): A dictionary containing product data.
+    #     Args:
+    #         data (dict): A dictionary containing product data.
 
-        Returns:
-            Product: An instance of the Product class.
+    #     Returns:
+    #         Product: An instance of the Product class.
 
-        Raises:
-            ValueError: If a required field is missing.
-        """
-        required_fields = ["name", "price", "stock_quantity"]
-        missing_fields = [field for field in required_fields if field not in data]
-        if missing_fields:
-            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+    #     Raises:
+    #         ValueError: If a required field is missing.
+    #     """
+    #     required_fields = ["name", "price", "stock"]
+    #     missing_fields = [field for field in required_fields if field not in data]
+    #     if missing_fields:
+    #         raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
         
-        return cls(
-            name=data["name"],
-            description=data.get("description"),
-            price=data["price"],
-            stock_quantity=data["stock_quantity"] or 0,
-            image_url=data.get("image_url"),
-            is_active=data.get("is_active", True),
-        )
+    #     return cls(
+    #         name=data["name"],
+    #         description=data.get("description"),
+    #         price=data["price"],
+    #         stock=data["stock"] or 0,
+    #         image_url=data.get("image_url"),
+    #         is_active=data.get("is_active", True),
+    #     )

@@ -20,7 +20,7 @@ Methods:
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy import ForeignKey, Integer, Float
 
 from app.db import db
@@ -44,7 +44,7 @@ class OrderItem(db.Model):
 
     # Other Fields
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
-    unit_price: Mapped[float] = mapped_column(Float, nullable=False)
+    price: Mapped[float] = mapped_column(Float, nullable=False)
 
     # Relationships
     order: Mapped["Order"] = relationship(
@@ -53,6 +53,25 @@ class OrderItem(db.Model):
 
     # Methods
 
+    @validates("quantity")
+    def validate_quantity(self, key, quantity):
+        """
+        Validate the quantity of the order item.
+
+        Args:
+            key (str): The key being validated.
+            quantity (int): The quantity to validate.
+
+        Returns:
+            int: The validated quantity.
+
+        Raises:
+            ValueError: If the quantity is less than 1.
+        """
+        if quantity < 1:
+            raise ValueError("Quantity must be at least 1.")
+        return quantity
+
     def calculate_subtotal(self) -> float:
         """
         Calculate the subtotal for this order item (quantity * unit price).
@@ -60,40 +79,40 @@ class OrderItem(db.Model):
         Returns:
             float: The subtotal for this item.
         """
-        return self.quantity * self.unit_price
+        return self.quantity * self.price
 
-    def to_dict(self) -> dict:
-        """
-        Convert the order item to a dictionary representation.
+    # def to_dict(self) -> dict:
+    #     """
+    #     Convert the order item to a dictionary representation.
 
-        Returns:
-            dict: A dictionary containing the order item details.
-        """
-        return {
-            "order_id": self.order_id,
-            "product_id": self.product_id,
-            "quantity": self.quantity,
-            "unit_price": self.unit_price,
-            "subtotal": self.calculate_subtotal(),
-        }
+    #     Returns:
+    #         dict: A dictionary containing the order item details.
+    #     """
+    #     return {
+    #         "order_id": self.order_id,
+    #         "product_id": self.product_id,
+    #         "quantity": self.quantity,
+    #         "unit_price": self.price,
+    #         "subtotal": self.calculate_subtotal(),
+    #     }
 
-    @classmethod
-    def from_dict(cls, data: dict) -> "OrderItem":
-        """
-        Create an OrderItem instance from a dictionary.
+    # @classmethod
+    # def from_dict(cls, data: dict) -> "OrderItem":
+    #     """
+    #     Create an OrderItem instance from a dictionary.
 
-        Args:
-            data (dict): A dictionary containing order item details.
+    #     Args:
+    #         data (dict): A dictionary containing order item details.
 
-        Returns:
-            OrderItem: An instance of OrderItem.
-        """
-        return cls(
-            order_id=UUID(data["order_id"]),
-            product_id=UUID(data["product_id"]),
-            quantity=data["quantity"],
-            unit_price=data["unit_price"],
-        )
+    #     Returns:
+    #         OrderItem: An instance of OrderItem.
+    #     """
+    #     return cls(
+    #         order_id=UUID(data["order_id"]),
+    #         product_id=UUID(data["product_id"]),
+    #         quantity=data["quantity"],
+    #         price=data["price"],
+    #     )
 
     # ?
     def update_quantity(self, new_quantity: int):
@@ -117,4 +136,4 @@ class OrderItem(db.Model):
         return f"""<OrderItem(order_id={self.order_id},
                     product_id={self.product_id},
                     quantity={self.quantity},
-                    unit_price={self.unit_price})>"""
+                    price={self.price})>"""

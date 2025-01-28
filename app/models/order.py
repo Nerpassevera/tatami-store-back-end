@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from enum import Enum as PyEnum
 from uuid import UUID, uuid4
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship,  validates
 from sqlalchemy import ForeignKey, Numeric, DateTime, Enum
 
 from app.db import db
@@ -15,7 +15,7 @@ from app.db import db
 if TYPE_CHECKING:
     from .user import User
     from .order_item import OrderItem
-
+    from .address import Address
 
 class OrderStatus(PyEnum):
     """
@@ -60,6 +60,7 @@ class Order(db.Model):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id"), nullable=False)
+    address_id: Mapped[int] = mapped_column(ForeignKey("addresses.id"), nullable=False)
     total_amount: Mapped[Numeric] = mapped_column(
         Numeric(10, 2), nullable=False, default=0.00)
     order_date: Mapped[datetime] = mapped_column(
@@ -70,65 +71,87 @@ class Order(db.Model):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="orders")
+    address: Mapped["Address"] = relationship("Address")
     order_items: Mapped[list["OrderItem"]] = relationship(
         "OrderItem", back_populates="order", cascade="all, delete-orphan"
     )
 
-    # Methods
-    def to_dict(self):
+    @validates("total_amount")
+    def validate_total_amount(self, key, value):
         """
-        Converts the Order object to a dictionary representation.
-
-        Returns:
-            dict: A dictionary containing the order details with the following keys:
-                - id (str): The unique identifier of the order.
-                - user_id (str): The unique identifier of the user who placed the order.
-                - total_amount (float): The total amount of the order.
-                - order_date (str): The date the order was placed in ISO 8601 format.
-                - status (str): The current status of the order.
-                - items (list): A list of dictionaries representing the items in the order.
-        """
-        return {
-            "id": str(self.id),
-            "user_id": str(self.user_id),
-            "total_amount": float(self.total_amount),
-            "order_date": self.order_date.isoformat(),
-            "status": self.status.value,
-            "items": [item.to_dict() for item in self.items],
-        }
-
-    def __repr__(self):
-        return f"<Order {self.id} - Status: {self.status.value}>"
-
-    @classmethod
-    def from_dict(cls, data):
-        """
-        Create an instance of the class from a dictionary of data.
+        Validate that total_amount is not negative.
 
         Args:
-                - "order_date" (datetime, optional): The date of the order.
-                    Defaults to the current UTC time.
-                Expected keys are:
-                - "user_id" (int): The ID of the user.
-                - "total_amount" (float, optional): The total amount of the order. Defaults to 0.00.
-                - "order_date" (datetime, optional): The date of the order. 
-                    Defaults to the current UTC time.
-                - "status" (str, optional): The status of the order. Defaults to "PENDING".
+            key (str): The name of the field being validated.
+            value (float): The value to validate.
 
         Returns:
-            An instance of the class.
+            float: The validated value.
 
         Raises:
-            ValueError: If a required field is missing or if the status value is invalid.
+            ValueError: If the total_amount is negative.
         """
-        try:
-            return cls(
-                user_id=data["user_id"],
-                total_amount=data.get("total_amount", 0.00),
-                order_date=data.get("order_date", datetime.now(timezone.utc)),
-                status=OrderStatus[data.get("status", "PENDING")],
-            )
-        except KeyError as e:
-            raise ValueError(f"Missing required field: {e}") from e
-        except ValueError as e:
-            raise ValueError(f"Invalid status value: {e}") from e
+        if value < 0:
+            raise ValueError("Total amount cannot be negative.")
+        return value
+
+    # Methods
+    # def to_dict(self):
+    #     """
+    #     Converts the Order object to a dictionary representation.
+
+    #     Returns:
+    #         dict: A dictionary containing the order details with the following keys:
+    #             - id (str): The unique identifier of the order.
+    #             - user_id (str): The unique identifier of the user who placed the order.
+    #             - total_amount (float): The total amount of the order.
+    #             - order_date (str): The date the order was placed in ISO 8601 format.
+    #             - status (str): The current status of the order.
+    #             - items (list): A list of dictionaries representing the items in the order.
+    #     """
+    #     return {
+    #         "id": str(self.id),
+    #         "user_id": str(self.user_id),
+    #         "address_id": self.address_id,
+    #         "total_amount": float(self.total_amount),
+    #         "order_date": self.order_date.isoformat(),
+    #         "status": self.status.value,
+    #         "items": [item.to_dict() for item in self.items],
+    #     }
+
+    # def __repr__(self):
+    #     return f"<Order {self.id} - Status: {self.status.value}>"
+
+    # @classmethod
+    # def from_dict(cls, data):
+    #     """
+    #     Create an instance of the class from a dictionary of data.
+
+    #     Args:
+    #             - "order_date" (datetime, optional): The date of the order.
+    #                 Defaults to the current UTC time.
+    #             Expected keys are:
+    #             - "user_id" (int): The ID of the user.
+    #             - "total_amount" (float, optional): The total amount of the order. Defaults to 0.00.
+    #             - "order_date" (datetime, optional): The date of the order. 
+    #                 Defaults to the current UTC time.
+    #             - "status" (str, optional): The status of the order. Defaults to "PENDING".
+
+    #     Returns:
+    #         An instance of the class.
+
+    #     Raises:
+    #         ValueError: If a required field is missing or if the status value is invalid.
+    #     """
+    #     try:
+    #         return cls(
+    #             user_id=data["user_id"],
+    #             address_id=data["address_id"],
+    #             total_amount=data.get("total_amount", 0.00),
+    #             order_date=data.get("order_date", datetime.now(timezone.utc)),
+    #             status=OrderStatus[data.get("status", "PENDING")],
+    #         )
+    #     except KeyError as e:
+    #         raise ValueError(f"Missing required field: {e}") from e
+    #     except ValueError as e:
+    #         raise ValueError(f"Invalid status value: {e}") from e

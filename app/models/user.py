@@ -37,6 +37,7 @@ from app.db import db
 if TYPE_CHECKING:
     from app.models.order import Order
     from app.models.cart import Cart
+    from app.models.address import Address
 
 
 class UserRole(PyEnum):
@@ -59,8 +60,6 @@ class User(db.Model):
         String, unique=True, nullable=False, index=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=False)
-    street_address: Mapped[Optional[str]] = mapped_column(
-        String, nullable=True)
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole), nullable=False, default=UserRole.USER)
     phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
@@ -72,6 +71,7 @@ class User(db.Model):
         "Order", back_populates="user", lazy="dynamic")
     cart: Mapped[Optional["Cart"]] = relationship(
         "Cart", back_populates="user", uselist=False)
+    addresses: Mapped[list["Address"]] = relationship("Address", back_populates="user", cascade="all, delete-orphan")
 
     # Methods
     def to_dict(self):
@@ -85,41 +85,39 @@ class User(db.Model):
             "email": self.email,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "street_address": self.street_address,
             "role": self.role.value,
             "phone": self.phone,
             "is_active": self.is_active,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None
         }
 
-    def __repr__(self):
-        return f"<User {self.email}>"
+    # def __repr__(self):
+    #     return f"<User {self.email}>"
 
-    @classmethod
-    def from_dict(cls, data):
-        """
-        Create a User instance from a dictionary of data.
+    # @classmethod
+    # def from_dict(cls, data):
+    #     """
+    #     Create a User instance from a dictionary of data.
 
-        :param data: A dictionary containing user data.
-        :return: A User instance.
-        :raises ValueError: If a required field is missing or if the role value is invalid.
-        """
-        try:
-            return cls(
-                id=uuid4(),
-                email=data["email"],
-                first_name=data["first_name"],
-                last_name=data["last_name"],
-                street_address=data.get("street_address"),
-                role=UserRole[data.get("role", "USER").upper()],
-                phone=data.get("phone"),
-                is_active=data.get("is_active", True),
-                deleted_at=datetime.fromisoformat(data["deleted_at"]) if data.get("deleted_at") else None
-            )
-        except KeyError as e:
-            raise ValueError(f"Missing required field: {e}") from e
-        except ValueError as e:
-            raise ValueError(f"Invalid role value: {e}") from e
+    #     :param data: A dictionary containing user data.
+    #     :return: A User instance.
+    #     :raises ValueError: If a required field is missing or if the role value is invalid.
+    #     """
+    #     try:
+    #         return cls(
+    #             id=uuid4(),
+    #             email=data["email"],
+    #             first_name=data["first_name"],
+    #             last_name=data["last_name"],
+    #             role=UserRole[data.get("role", "USER").upper()],
+    #             phone=data.get("phone"),
+    #             is_active=data.get("is_active", True),
+    #             deleted_at=datetime.fromisoformat(data["deleted_at"]) if data.get("deleted_at") else None
+    #         )
+    #     except KeyError as e:
+    #         raise ValueError(f"Missing required field: {e}") from e
+    #     except ValueError as e:
+    #         raise ValueError(f"Invalid role value: {e}") from e
 
     @classmethod
     def role_choices(cls):

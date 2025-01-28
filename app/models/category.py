@@ -38,17 +38,17 @@ class Category(db.Model):
         back_populates="category",
     )
 
-    def __repr__(self) -> str:
-        """Return string representation of the Category."""
-        return f"<Category(name={self.name})>"
+    # def __repr__(self) -> str:
+    #     """Return string representation of the Category."""
+    #     return f"<Category(name={self.name})>"
 
-    def to_dict(self) -> dict:
-        """Convert the category instance to a dictionary.
+    # def to_dict(self) -> dict:
+    #     """Convert the category instance to a dictionary.
         
-        Returns:
-            dict: Category data in dictionary format
-        """
-        return {
-            "name": self.name,
-            "description": self.description
-        }
+    #     Returns:
+    #         dict: Category data in dictionary format
+    #     """
+    #     return {
+    #         "name": self.name,
+    #         "description": self.description
+    #     }
