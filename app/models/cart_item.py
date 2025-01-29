@@ -81,48 +81,48 @@ class CartItem(db.Model):
             raise ValueError("Quantity must be at least 1.")
         return quantity
 
-    # def to_dict(self):
-    #     """
-    #     Converts the CartItem instance to a dictionary representation.
+    def to_dict(self):
+        """
+        Converts the CartItem instance to a dictionary representation.
 
-    #     Returns:
-    #         dict: A dictionary containing the cart item details with the following keys:
-    #             - "cart_id" (str): The ID of the cart.
-    #             - "product_id" (str): The ID of the product.
-    #             - "quantity" (int): The quantity of the product in the cart.
-    #             - "product_details" (dict or None): A dictionary containing the product details if available, otherwise None.
-    #     """
-    #     return {
-    #         "cart_id": str(self.cart_id),
-    #         "product_id": str(self.product_id),
-    #         "quantity": self.quantity,
-    #         "product_details": self.product.to_dict() if self.product else None,
-    #     }
+        Returns:
+            dict: A dictionary containing the cart item details with the following keys:
+                - "cart_id" (str): The ID of the cart.
+                - "product_id" (str): The ID of the product.
+                - "quantity" (int): The quantity of the product in the cart.
+                - "product_details" (dict or None): A dictionary containing the product details if available, otherwise None.
+        """
+        return {
+            "cart_id": str(self.cart_id),
+            "product_id": str(self.product_id),
+            "quantity": self.quantity,
+            "product_details": self.product.to_dict() if self.product else None,
+        }
 
-    # def __repr__(self):
-    #     return f"""<CartItem(cart_id={self.cart_id},
-    #                 product_id={self.product_id},
-    #                 quantity={self.quantity})>"""
+    def __repr__(self):
+        return f"""<CartItem(cart_id={self.cart_id},
+                    product_id={self.product_id},
+                    quantity={self.quantity})>"""
 
-    # @classmethod
-    # def from_dict(cls, data):
-    #     """
-    #     Create an instance of the class from a dictionary.
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Create an instance of the class from a dictionary.
 
-    #     Args:
-    #         data (dict): A dictionary containing the keys 'cart_id', 'product_id', and 'quantity'.
+        Args:
+            data (dict): A dictionary containing the keys 'cart_id', 'product_id', and 'quantity'.
 
-    #     Returns:
-    #         An instance of the class.
+        Returns:
+            An instance of the class.
 
-    #     Raises:
-    #         ValueError: If any of the required fields ('cart_id', 'product_id', 'quantity') are missing from the dictionary.
-    #     """
-    #     try:
-    #         return cls(
-    #             cart_id=data["cart_id"],
-    #             product_id=data["product_id"],
-    #             quantity=data["quantity"],
-    #         )
-    #     except KeyError as e:
-    #         raise ValueError(f"Missing required field: {e}") from e
+        Raises:
+            ValueError: If any of the required fields ('cart_id', 'product_id', 'quantity') are missing from the dictionary.
+        """
+        try:
+            return cls(
+                cart_id=data["cart_id"],
+                product_id=data["product_id"],
+                quantity=data["quantity"],
+            )
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}") from e

@@ -11,7 +11,7 @@ from app.exceptions import ApplicationError
 bp = Blueprint("cart_bp", __name__, url_prefix="/cart")
 
 
-@bp.route("/<user_id>/items", methods=["GET"])
+@bp.route("/<user_id>", methods=["GET"])
 def retrieve_cart_items(user_id):
     """
     Retrieve all items in the cart for a specific user.
@@ -26,7 +26,7 @@ def retrieve_cart_items(user_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 
-@bp.route("/<user_id>/items", methods=["POST"])
+@bp.route("/<user_id>", methods=["POST"])
 def add_item_to_cart_endpoint(user_id):
     """
     Add an item to the user's cart.
@@ -48,7 +48,7 @@ def add_item_to_cart_endpoint(user_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 
-@bp.route("/<user_id>/items/<cart_item_id>", methods=["DELETE"])
+@bp.route("/<user_id>/<cart_item_id>", methods=["DELETE"])
 def remove_item_from_cart_endpoint(user_id, cart_item_id):
     """
     Remove an item from the user's cart.
@@ -64,7 +64,7 @@ def remove_item_from_cart_endpoint(user_id, cart_item_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 
-@bp.route("/<user_id>/items/<cart_item_id>", methods=["PATCH"])
+@bp.route("/<user_id>/<cart_item_id>", methods=["PATCH"])
 def update_cart_item_quantity_endpoint(user_id, cart_item_id):
     """
     Update the quantity of an item in the user's cart.

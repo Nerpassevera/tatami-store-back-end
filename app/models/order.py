@@ -122,36 +122,37 @@ class Order(db.Model):
     # def __repr__(self):
     #     return f"<Order {self.id} - Status: {self.status.value}>"
 
-    # @classmethod
-    # def from_dict(cls, data):
-    #     """
-    #     Create an instance of the class from a dictionary of data.
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Create an instance of the class from a dictionary of data.
 
-    #     Args:
-    #             - "order_date" (datetime, optional): The date of the order.
-    #                 Defaults to the current UTC time.
-    #             Expected keys are:
-    #             - "user_id" (int): The ID of the user.
-    #             - "total_amount" (float, optional): The total amount of the order. Defaults to 0.00.
-    #             - "order_date" (datetime, optional): The date of the order. 
-    #                 Defaults to the current UTC time.
-    #             - "status" (str, optional): The status of the order. Defaults to "PENDING".
+        Args:
+                - "order_date" (datetime, optional): The date of the order.
+                    Defaults to the current UTC time.
+                Expected keys are:
+                - "user_id" (int): The ID of the user.
+                - "total_amount" (float, optional): The total amount of the order. Defaults to 0.00.
+                - "order_date" (datetime, optional): The date of the order. 
+                    Defaults to the current UTC time.
+                - "status" (str, optional): The status of the order. Defaults to "PENDING".
 
-    #     Returns:
-    #         An instance of the class.
+        Returns:
+            An instance of the class.
 
-    #     Raises:
-    #         ValueError: If a required field is missing or if the status value is invalid.
-    #     """
-    #     try:
-    #         return cls(
-    #             user_id=data["user_id"],
-    #             address_id=data["address_id"],
-    #             total_amount=data.get("total_amount", 0.00),
-    #             order_date=data.get("order_date", datetime.now(timezone.utc)),
-    #             status=OrderStatus[data.get("status", "PENDING")],
-    #         )
-    #     except KeyError as e:
-    #         raise ValueError(f"Missing required field: {e}") from e
-    #     except ValueError as e:
-    #         raise ValueError(f"Invalid status value: {e}") from e
+        Raises:
+            ValueError: If a required field is missing or if the status value is invalid.
+        """
+        try:
+            return cls(
+                id=uuid4(),
+                user_id=data["user_id"],
+                address_id=data["address_id"],
+                total_amount=data.get("total_amount", 0.00),
+                order_date=data.get("order_date", datetime.now(timezone.utc)),
+                status=OrderStatus[data.get("status", "PENDING")],
+            )
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}") from e
+        except ValueError as e:
+            raise ValueError(f"Invalid status value: {e}") from e

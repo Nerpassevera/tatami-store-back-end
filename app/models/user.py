@@ -91,33 +91,33 @@ class User(db.Model):
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None
         }
 
-    # def __repr__(self):
-    #     return f"<User {self.email}>"
+    def __repr__(self):
+        return f"<User {self.email}>"
 
-    # @classmethod
-    # def from_dict(cls, data):
-    #     """
-    #     Create a User instance from a dictionary of data.
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Create a User instance from a dictionary of data.
 
-    #     :param data: A dictionary containing user data.
-    #     :return: A User instance.
-    #     :raises ValueError: If a required field is missing or if the role value is invalid.
-    #     """
-    #     try:
-    #         return cls(
-    #             id=uuid4(),
-    #             email=data["email"],
-    #             first_name=data["first_name"],
-    #             last_name=data["last_name"],
-    #             role=UserRole[data.get("role", "USER").upper()],
-    #             phone=data.get("phone"),
-    #             is_active=data.get("is_active", True),
-    #             deleted_at=datetime.fromisoformat(data["deleted_at"]) if data.get("deleted_at") else None
-    #         )
-    #     except KeyError as e:
-    #         raise ValueError(f"Missing required field: {e}") from e
-    #     except ValueError as e:
-    #         raise ValueError(f"Invalid role value: {e}") from e
+        :param data: A dictionary containing user data.
+        :return: A User instance.
+        :raises ValueError: If a required field is missing or if the role value is invalid.
+        """
+        try:
+            return cls(
+                id=uuid4(),
+                email=data["email"],
+                first_name=data["first_name"],
+                last_name=data["last_name"],
+                role=UserRole[data.get("role", "USER").upper()],
+                phone=data.get("phone"),
+                is_active=data.get("is_active", True),
+                deleted_at=datetime.fromisoformat(data["deleted_at"]) if data.get("deleted_at") else None
+            )
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}") from e
+        except ValueError as e:
+            raise ValueError(f"Invalid role value: {e}") from e
 
     @classmethod
     def role_choices(cls):

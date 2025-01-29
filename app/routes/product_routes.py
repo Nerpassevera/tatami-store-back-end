@@ -54,7 +54,7 @@ def create_product_endpoint():
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
     except Exception:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+        return jsonify({"error": "Unexpected error occurred!"}), 500
 
 
 @bp.route("/<product_id>", methods=["PUT"])

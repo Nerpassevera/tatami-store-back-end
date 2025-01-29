@@ -28,8 +28,8 @@ def retrieve_cart_items(user_id):
         return jsonify(cart_items), 200
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+    except ValueError as e:
+        return jsonify({"error": f"Unexpected error occurred - {e}"}), 500
 
 
 @bp.route("/", methods=["POST"])
@@ -46,7 +46,7 @@ def create_order():
     """
     try:
         data = request.json
-        user_id = UUID(data.get("user_id"))
+        user_id = UUID(data.get("user_id").strip())
         address_id = data.get("address_id")
 
         if not user_id or not address_id:
@@ -56,8 +56,12 @@ def create_order():
         return jsonify({"order_id": str(new_order.id), "message": "Order placed successfully!"}), 201
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
+    except ValueError:
+        return jsonify({"error": "Unexpected value error occurred."}), 500
+    except TypeError:
+        return jsonify({"error": "Unexpected type error occurred."}), 500
     except Exception as e:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+        return jsonify({"error": f"Unexpected error occurred - {e}"}), 500
 
 
 @bp.route("/<user_id>", methods=["GET"])
@@ -104,7 +108,7 @@ def retrieve_user_orders(user_id):
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+        return jsonify({"error": f"Unexpected error occurred - {e}"}), 500
 
 
 @bp.route("/<order_id>/status", methods=["PATCH"])
@@ -135,4 +139,4 @@ def update_order_status(order_id):
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+        return jsonify({"error": f"Unexpected error occurred - {e}"}), 500

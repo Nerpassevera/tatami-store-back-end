@@ -9,6 +9,7 @@ from .routes.product_routes import bp as product_bp
 from .routes.cart_routes import bp as cart_bp
 from .routes.order_routes import bp as order_bp
 from .routes.category_routes import bp as category_bp
+from .routes.address_routes import bp as address_bp
 
 from .db import db, migrate
 from .models import user
@@ -44,5 +45,6 @@ def create_app(config=None):
     app.register_blueprint(cart_bp)
     app.register_blueprint(order_bp)
     app.register_blueprint(category_bp)
+    app.register_blueprint(address_bp)
 
     return app

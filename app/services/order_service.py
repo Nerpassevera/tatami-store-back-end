@@ -26,7 +26,6 @@ def get_cart_items_with_prices(user_id: UUID) -> list[dict]:
     try:
         cart_items = (
             db.session.query(
-                CartItem.id.label("cart_item_id"),
                 CartItem.cart_id,
                 CartItem.product_id,
                 CartItem.quantity,
@@ -40,7 +39,6 @@ def get_cart_items_with_prices(user_id: UUID) -> list[dict]:
         # Convert the results into a list of dictionaries
         return [
             {
-                "cart_item_id": item.cart_item_id,
                 "cart_id": item.cart_id,
                 "product_id": item.product_id,
                 "quantity": item.quantity,
@@ -68,14 +66,19 @@ def place_order(user_id: UUID, address_id: int) -> Order:
     """
     
     try:
-        address = validate_model(address_id, Address)
-        if address.user_id != user_id:
-            raise AddressOwnershipError(address.id, user_id)
-
         # Start the transaction
+        print("Session beggins ...")
         with db.session.begin():
+            address = validate_model(address_id, Address)
+            print(f"Address: {address}")
+            print("Validating address ownership ...", address.user_id != user_id)
+            if address.user_id != user_id:
+                raise AddressOwnershipError(address.id, user_id)
+
             # Fetch the user's cart with item prices
             items_with_prices = get_cart_items_with_prices(user_id)
+            print(items_with_prices)
+
             if not items_with_prices:
                 raise EmptyCartError(user_id)
             # Calculate the total amount
@@ -85,6 +88,7 @@ def place_order(user_id: UUID, address_id: int) -> Order:
             # Create the order
             new_order = Order.from_dict(
                 {"user_id": user_id, "total_amount": total_amount, "address_id": address.id})
+            print(f"New order: {new_order.to_dict()}")
             db.session.add(new_order)
             db.session.flush()
 
@@ -98,14 +102,15 @@ def place_order(user_id: UUID, address_id: int) -> Order:
 
                 # Create order item
                 order_item = OrderItem.from_dict({
+                    "order_id": new_order.id,
                     "product_id": product.id,
-                    "quantity": item.quantity,
+                    "quantity": item["quantity"],
                     "price": product.price
                 })
                 db.session.add(order_item)
 
                 # Subtract stock
-                product.stock -= item.quantity
+                product.stock -= item["quantity"]
                 db.session.add(product)
 
             # Clear the user's cart
@@ -192,7 +197,6 @@ def get_user_orders(
                 "status": order.status.value,
                 "items": [
                     {
-                        "order_item_id": str(item.id),
                         "product_id": str(item.product_id),
                         "product_name": item.product.name,
                         "quantity": item.quantity,

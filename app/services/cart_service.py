@@ -20,7 +20,6 @@ def get_cart_items(user_id: UUID) -> list[dict]:
     try:
         cart_items = (
             db.session.query(
-                CartItem.id.label("cart_item_id"),
                 CartItem.product_id,
                 CartItem.quantity,
                 Product.name.label("product_name"),
@@ -33,7 +32,6 @@ def get_cart_items(user_id: UUID) -> list[dict]:
 
         return [
             {
-                "cart_item_id": item.cart_item_id,
                 "product_id": item.product_id,
                 "product_name": item.product_name,
                 "quantity": item.quantity,
@@ -68,7 +66,9 @@ def add_item_to_cart(user_id: UUID, product_id: UUID, quantity: int) -> None:
 
         # Retrieve or create the cart for the user
         cart = db.session.query(Cart).filter_by(user_id=user_id).first()
+        print(cart)
         if not cart:
+            print("NO CART FOUND")
             raise ApplicationError("Cart not found for the user.")
 
         # Check if the product already exists in the cart
