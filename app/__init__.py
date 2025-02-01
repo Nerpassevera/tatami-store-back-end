@@ -32,7 +32,7 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     # # ✅ Register OAuth with the app
-    # global oauth
+    global oauth
     oauth = register_oauth(app)
 
     # ✅ Register Blueprints
