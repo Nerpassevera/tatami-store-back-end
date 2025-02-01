@@ -19,7 +19,7 @@ def create_app(config=None):
     CORS(app)
 
     # ✅ Set a SECRET KEY for Flask Sessions
-    app.secret_key = os.environ.get("FLASK_SECRET_KEY", "ut0e92dfkn1a51viq8jevj5s8f69hho9cgpd443jg308h70gngq")  
+    app.secret_key = os.environ.get("FLASK_SECRET_KEY")  
     # ⬆️ Replace `"supersecretkey123"` with an actual strong secret key or store it in `.env`
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -31,8 +31,8 @@ def create_app(config=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # ✅ Register OAuth with the app
-    global oauth
+    # # ✅ Register OAuth with the app
+    # global oauth
     oauth = register_oauth(app)
 
     # ✅ Register Blueprints
@@ -42,6 +42,6 @@ def create_app(config=None):
     app.register_blueprint(order_bp)
     app.register_blueprint(category_bp)
     app.register_blueprint(address_bp)
-    app.register_blueprint(auth_bp)
-
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    
     return app
