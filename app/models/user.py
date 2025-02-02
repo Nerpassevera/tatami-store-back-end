@@ -25,7 +25,6 @@ Methods:
 """
 
 from enum import Enum as PyEnum
-from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Optional
 from datetime import datetime
 
@@ -55,7 +54,7 @@ class User(db.Model):
     __tablename__ = "users"
 
     # Fields
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[str] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(
         String, unique=True, nullable=False, index=True)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
@@ -105,7 +104,7 @@ class User(db.Model):
         """
         try:
             return cls(
-                id=uuid4(),
+                id=data["cognito_id"],
                 email=data["email"],
                 first_name=data["first_name"],
                 last_name=data["last_name"],

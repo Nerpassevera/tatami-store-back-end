@@ -8,7 +8,7 @@ from enum import Enum as PyEnum
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship,  validates
-from sqlalchemy import ForeignKey, Numeric, DateTime, Enum
+from sqlalchemy import ForeignKey, Numeric, DateTime, Enum, String
 
 from app.db import db
 
@@ -37,7 +37,7 @@ class Order(db.Model):
 
     Attributes:
         id (UUID): The unique identifier for the order.
-        user_id (UUID): The unique identifier for the user who placed the order.
+        user_id (String): The unique identifier for the user who placed the order.
         total_amount (Numeric): The total amount for the order.
         order_date (datetime): The date and time when the order was placed.
         status (OrderStatus): The current status of the order.
@@ -58,7 +58,7 @@ class Order(db.Model):
 
     # Fields
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[String] = mapped_column(
         ForeignKey("users.id"), nullable=False)
     address_id: Mapped[int] = mapped_column(ForeignKey("addresses.id"), nullable=False)
     total_amount: Mapped[Numeric] = mapped_column(

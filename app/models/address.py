@@ -14,7 +14,6 @@ Methods:
     from_dict(cls, data: dict) -> 'Address':
         Creates an Address instance from a dictionary of data.
 """
-from uuid import UUID
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -31,7 +30,7 @@ class Address(db.Model):
 
     Attributes:
         id (int): The unique identifier for the address.
-        user_id (UUID): The unique identifier for the user associated with the address.
+        user_id (String): The unique identifier for the user associated with the address.
         label (Optional[str]): An optional label for the address (e.g., "Home", "Work").
         house_number (str): The house number of the address.
         road (str): The road or street name of the address.
@@ -50,7 +49,7 @@ class Address(db.Model):
 
     # Fields
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[String] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     label: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     house_number: Mapped[str] = mapped_column(String, nullable=False)
     road: Mapped[str] = mapped_column(String, nullable=False)

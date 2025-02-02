@@ -3,7 +3,7 @@ Cart model representing a shopping cart in the database.
 
 Attributes:
     id (UUID): Primary key, unique identifier for the cart.
-    user_id (UUID): Foreign key referencing the user who owns the cart.
+    user_id (String): Foreign key referencing the user who owns the cart.
     user (User): Relationship to the User model.
     items (Optional[list[CartItem]]): Relationship to the CartItem model, representing items in the cart.
 
@@ -26,7 +26,7 @@ from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 
 from app.db import db
 
@@ -41,7 +41,7 @@ class Cart(db.Model):
 
     Attributes:
         id (UUID): The unique identifier for the cart.
-        user_id (UUID): The unique identifier for the user associated with the cart.
+        user_id (String): The unique identifier for the user associated with the cart.
         user (User): The user associated with the cart.
         items (Optional[list[CartItem]]): The list of items in the cart.
 
@@ -57,7 +57,7 @@ class Cart(db.Model):
 
     # Fields
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey(
+    user_id: Mapped[String] = mapped_column(ForeignKey(
         "users.id", ondelete="CASCADE"), unique=True, nullable=False)
 
     # Relationships
