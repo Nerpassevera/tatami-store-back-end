@@ -1,4 +1,7 @@
-from flask import Blueprint, redirect, url_for, session, request, current_app
+import json
+import base64
+from os import environ
+from flask import Blueprint, redirect, url_for, session, request, current_app, jsonify, make_response
 from app.services.user_service import create_user_if_not_exists
 
 bp = Blueprint("auth", __name__)
@@ -8,8 +11,10 @@ bp = Blueprint("auth", __name__)
 def login():
     oauth = current_app.extensions["oauth"]
 
+    print('request.args', request.base_url)
     next_url = request.args.get("next", "/")
     session["next_url"] = next_url
+    print("URL:", next_url)
     return oauth.cognito.authorize_redirect(redirect_uri=url_for("auth.callback", _external=True))
 
 # Callback to handle Cognito authentication
@@ -17,28 +22,35 @@ def login():
 def callback():
     oauth = current_app.extensions["oauth"]
     token = oauth.cognito.authorize_access_token()
-    user_info = oauth.cognito.parse_id_token(token, nonce=None)
-    session["user"] = user_info
     next_url = session.pop("next_url", "/")
+    user = oauth.cognito.parse_id_token(token, nonce=None)
+    session["user"] = user
 
     user_data = {
-        "cognito_id": user_info.get("sub"),
-        "email": user_info.get("email"),
-        "phone_number": user_info.get("phone_number"),
-        "username": user_info.get("cognito:username"),
-        "family_name": user_info.get("family_name"),
-        "given_name": user_info.get("given_name"),
+        "cognito_id": user.get("sub"),
+        "email": user.get("email"),
+        "phone_number": user.get("phone_number"),
+        "username": user.get("cognito:username"),
+        "family_name": user.get("family_name"),
+        "given_name": user.get("given_name"),
     }
-
 
     create_user_if_not_exists(user_data)
 
-    user = oauth.cognito.parse_id_token(token, nonce=None)
-    session["user"] = user
-    return redirect(next_url)
 
-# Logout Route
+    # Convert user_data to JSON and Base64 encode it
+    encoded_user_data = base64.b64encode(json.dumps(user_data).encode()).decode()
+
+    response = make_response(redirect('http://localhost:5173'))
+    response.set_cookie("user_data", encoded_user_data, httponly=False, samesite="Lax")
+
+    return response
+
 @bp.route("/logout")
 def logout():
     session.pop("user", None)
-    return redirect("/")
+
+    cognito_logout_url = f"https://us-west-22z5rg2vjb.auth.us-west-2.amazoncognito.com/logout?client_id=7tqidgi3eb03j1i7pt1hsnkf7r&logout_uri={environ.get("FRONTEND_URL")}"
+    response = make_response(redirect(cognito_logout_url))
+    response.set_cookie("user_data", "", expires=0)
+    return response

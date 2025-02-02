@@ -7,7 +7,6 @@ def register_oauth(app):
     """Attach OAuth to the app and configure AWS Cognito."""
     oauth.init_app(app)  # Now attach it to Flask
     app.extensions["oauth"] = oauth
-    print("AWS_COGNITO_CLIENT_SECRET:", environ.get("AWS_COGNITO_CLIENT_SECRET"))
 
     oauth.register(
         name='cognito',

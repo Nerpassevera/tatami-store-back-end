@@ -1,3 +1,4 @@
+import traceback
 from flask import Blueprint, request, jsonify
 from app.services.address_service import (
     create_address,
@@ -19,6 +20,7 @@ def create_address_endpoint():
         address = create_address(data)
         return jsonify({"message": "Address created successfully!", "address": address.to_dict()}), 201
     except Exception as e:
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 400
 
 
@@ -32,6 +34,7 @@ def get_addresses_endpoint(user_id):
         addresses = get_user_addresses(user_id)
         return jsonify([address.to_dict() for address in addresses]), 200
     except Exception as e:
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 400
 
 
@@ -42,10 +45,11 @@ def update_address_endpoint(address_id):
     """
     try:
         data = request.json
-        address_id = int(address_id)
+        address_id = UUID(address_id)
         updated_address = update_address(address_id, data)
         return jsonify({"message": "Address updated successfully!", "address": updated_address.to_dict()}), 200
     except Exception as e:
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 400
 
 
@@ -55,8 +59,9 @@ def delete_address_endpoint(address_id):
     Endpoint to delete an address.
     """
     try:
-        address_id = int(address_id)
+        address_id = UUID(address_id)
         delete_address(address_id)
         return jsonify({"message": "Address deleted successfully!"}), 200
     except Exception as e:
+        print(traceback.format_exc())
         return jsonify({"error": str(e)}), 400
