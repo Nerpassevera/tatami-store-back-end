@@ -15,7 +15,7 @@ def register_oauth(app):
         client_id='7tqidgi3eb03j1i7pt1hsnkf7r',
         client_secret=environ.get("AWS_COGNITO_CLIENT_SECRET"),
         server_metadata_url='https://cognito-idp.us-west-2.amazonaws.com/us-west-2_2z5rG2vjB/.well-known/openid-configuration',
-        client_kwargs={'scope': 'email openid phone'},
+        client_kwargs={'scope': 'openid email phone profile'},
         redirect_uri="https://tatami-store-be-4d8522a2c022.herokuapp.com/auth/callback"
 
 )

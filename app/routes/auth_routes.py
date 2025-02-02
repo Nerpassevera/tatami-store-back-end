@@ -1,4 +1,5 @@
 from flask import Blueprint, redirect, url_for, session, jsonify, request, current_app
+from app.services.user_service import create_user_if_not_exists
 
 bp = Blueprint("auth", __name__)
 
@@ -14,6 +15,23 @@ def callback():
     oauth = current_app.extensions["oauth"]
     token = oauth.cognito.authorize_access_token()
     print("TOKEN RECEIVED:", token)
+    user_info = oauth.cognito.parse_id_token(token, nonce=None)
+    print("USER INFO:", user_info)
+
+
+    user_data = {
+        "cognito_id": user_info.get("sub"),
+        "email": user_info.get("email"),
+        "phone_number": user_info.get("phone_number"),
+        "username": user_info.get("cognito:username"),
+        "family_name": user_info.get("family_name"),
+        "given_name": user_info.get("given_name"),
+    }
+
+
+    print("USER DATA:", user_data)
+
+    create_user_if_not_exists(user_data)
 
     user = oauth.cognito.parse_id_token(token, nonce=None)
     session["user"] = user

@@ -21,7 +21,42 @@ from app.models.cart import Cart
 from app.db import db
 from app.services.utility_functions import validate_model
 from sqlalchemy.exc import SQLAlchemyError
-from uuid import UUID
+
+def user_data_convertor(user_data: dict):
+    user_data["phone"] = user_data["phone_number"]
+    user_data["last_name"] = user_data["family_name"]
+    user_data["first_name"] = user_data["given_name"]
+    user_data.pop("family_name")
+    user_data.pop("given_name")
+    user_data.pop("phone_number")
+    user_data.pop("username")
+    return user_data
+
+def create_user_if_not_exists(user_data: dict) -> User:
+    """
+    Creates a new user if the user does not already exist in the database.
+
+    Args:
+        user_data (dict): Data for creating the user (name, email, password, etc.).
+
+    Returns:
+        User: The created user.
+
+    Raises:
+        Exception: In case of a failed transaction.
+    """
+    try:
+        existing_user = db.session.query(User).filter_by(email=user_data["email"]).first()
+        db.session.remove()
+        if existing_user:
+            return existing_user
+        else:
+            user_data = user_data_convertor(user_data)
+            return create_user_with_cart(user_data)
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise Exception(f"Error creating user: {str(e)}")
+
 
 def create_user_with_cart(user_data: dict, role: str = "User") -> User:
     """
