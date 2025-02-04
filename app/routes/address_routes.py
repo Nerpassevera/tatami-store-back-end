@@ -30,7 +30,6 @@ def get_addresses_endpoint(user_id):
     Endpoint to get all addresses for a user.
     """
     try:
-        user_id = UUID(user_id)
         addresses = get_user_addresses(user_id)
         return jsonify([address.to_dict() for address in addresses]), 200
     except Exception as e:

@@ -11,10 +11,10 @@ bp = Blueprint("auth", __name__)
 def login():
     oauth = current_app.extensions["oauth"]
 
-    print('request.args', request.base_url)
+    # print('request.args', request.base_url)
     next_url = request.args.get("next", "/")
     session["next_url"] = next_url
-    print("URL:", next_url)
+    # print("URL:", next_url)
     return oauth.cognito.authorize_redirect(redirect_uri=url_for("auth.callback", _external=True))
 
 # Callback to handle Cognito authentication

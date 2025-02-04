@@ -10,14 +10,12 @@ from app.exceptions import ApplicationError
 
 bp = Blueprint("cart_bp", __name__, url_prefix="/cart")
 
-
 @bp.route("/<user_id>", methods=["GET"])
 def retrieve_cart_items(user_id):
     """
     Retrieve all items in the cart for a specific user.
     """
     try:
-        user_id = UUID(user_id)
         cart_items = get_cart_items(user_id)
         return jsonify(cart_items), 200
     except ApplicationError as e:
@@ -25,14 +23,12 @@ def retrieve_cart_items(user_id):
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
 
-
 @bp.route("/<user_id>", methods=["POST"])
 def add_item_to_cart_endpoint(user_id):
     """
     Add an item to the user's cart.
     """
     try:
-        user_id = UUID(user_id)
         data = request.json
         product_id = UUID(data.get("product_id"))
         quantity = data.get("quantity", 1)
@@ -40,13 +36,13 @@ def add_item_to_cart_endpoint(user_id):
         if not product_id or quantity <= 0:
             return jsonify({"error": "Invalid product_id or quantity."}), 400
 
-        add_item_to_cart(user_id, product_id, quantity)
-        return jsonify({"message": "Item added to cart successfully!"}), 201
+        # Call the service which now returns the cart item details
+        cart_item_data = add_item_to_cart(user_id, product_id, quantity)
+        return jsonify(cart_item_data), 201
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
-
 
 @bp.route("/<user_id>/<cart_item_id>", methods=["DELETE"])
 def remove_item_from_cart_endpoint(user_id, cart_item_id):
@@ -54,7 +50,6 @@ def remove_item_from_cart_endpoint(user_id, cart_item_id):
     Remove an item from the user's cart.
     """
     try:
-        user_id = UUID(user_id)
         cart_item_id = UUID(cart_item_id)
         remove_item_from_cart(user_id, cart_item_id)
         return jsonify({"message": "Item removed from cart successfully!"}), 200
@@ -63,14 +58,12 @@ def remove_item_from_cart_endpoint(user_id, cart_item_id):
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
 
-
 @bp.route("/<user_id>/<cart_item_id>", methods=["PATCH"])
 def update_cart_item_quantity_endpoint(user_id, cart_item_id):
     """
     Update the quantity of an item in the user's cart.
     """
     try:
-        user_id = UUID(user_id)
         cart_item_id = UUID(cart_item_id)
         data = request.json
         quantity = data.get("quantity")
