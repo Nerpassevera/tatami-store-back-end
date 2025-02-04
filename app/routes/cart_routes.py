@@ -36,7 +36,7 @@ def add_item_to_cart_endpoint(user_id):
         if not product_id or quantity <= 0:
             return jsonify({"error": "Invalid product_id or quantity."}), 400
 
-        # Call the service which now returns the cart item details
+        # Call the service which now returns the cart item details.
         cart_item_data = add_item_to_cart(user_id, product_id, quantity)
         return jsonify(cart_item_data), 201
     except ApplicationError as e:
@@ -44,34 +44,34 @@ def add_item_to_cart_endpoint(user_id):
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
 
-@bp.route("/<user_id>/<cart_item_id>", methods=["DELETE"])
-def remove_item_from_cart_endpoint(user_id, cart_item_id):
+@bp.route("/<user_id>/<product_id>", methods=["DELETE"])
+def remove_item_from_cart_endpoint(user_id, product_id):
     """
-    Remove an item from the user's cart.
+    Remove an item from the user's cart by product ID.
     """
     try:
-        cart_item_id = UUID(cart_item_id)
-        remove_item_from_cart(user_id, cart_item_id)
+        product_id = UUID(product_id)
+        remove_item_from_cart(user_id, product_id)
         return jsonify({"message": "Item removed from cart successfully!"}), 200
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
 
-@bp.route("/<user_id>/<cart_item_id>", methods=["PATCH"])
-def update_cart_item_quantity_endpoint(user_id, cart_item_id):
+@bp.route("/<user_id>/<product_id>", methods=["PATCH"])
+def update_cart_item_quantity_endpoint(user_id, product_id):
     """
-    Update the quantity of an item in the user's cart.
+    Update the quantity of an item in the user's cart by product ID.
     """
     try:
-        cart_item_id = UUID(cart_item_id)
+        product_id = UUID(product_id)
         data = request.json
         quantity = data.get("quantity")
 
         if quantity is None or quantity <= 0:
             return jsonify({"error": "Invalid quantity."}), 400
 
-        update_cart_item_quantity(user_id, cart_item_id, quantity)
+        update_cart_item_quantity(user_id, product_id, quantity)
         return jsonify({"message": "Cart item quantity updated successfully!"}), 200
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
