@@ -45,15 +45,18 @@ def assign_category_to_product(product_id: UUID, category_id: UUID) -> str:
         str: A success message.
     """
     try:
-        validate_model(product_id, Product)
-        validate_model(category_id, Category)
+        product = validate_model(product_id, Product)
+        category = validate_model(category_id, Category)
         product_category = ProductCategory(product_id=product_id, category_id=category_id)
         db.session.add(product_category)
         db.session.commit()
-        return f"Category {category_id} assigned to product {product_id}."
+
+        category_name = category.to_dict()['name']
+        product_name = product.to_dict()['name']
+        return f"Category \"{category_name}\" assigned to product \"{product_name}\"."
     except SQLAlchemyError as e:
         db.session.rollback()
-        raise ApplicationError(f"Error assigning category to product: {str(e)}")
+        raise ApplicationError(f"Error assigning category to product: {str(e)}") from e
 
 
 def create_category(category_data: dict) -> Category:
