@@ -1,5 +1,7 @@
 from uuid import UUID
 from app.models.category import Category
+from app.models.product import Product
+from app.models.product_category import ProductCategory
 from app.db import db
 from sqlalchemy.exc import SQLAlchemyError
 from app.services.utility_functions import validate_model
@@ -30,6 +32,28 @@ def get_category_by_id(category_id: UUID) -> Category:
         Category: The retrieved category.
     """
     return validate_model(category_id, Category)
+
+def assign_category_to_product(product_id: UUID, category_id: UUID) -> str:
+    """
+    Assign a category to a product.
+
+    Args:
+        product_id (UUID): The ID of the product.
+        category_id (int): The ID of the category.
+
+    Returns:
+        str: A success message.
+    """
+    try:
+        validate_model(product_id, Product)
+        validate_model(category_id, Category)
+        product_category = ProductCategory(product_id=product_id, category_id=category_id)
+        db.session.add(product_category)
+        db.session.commit()
+        return f"Category {category_id} assigned to product {product_id}."
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        raise ApplicationError(f"Error assigning category to product: {str(e)}")
 
 
 def create_category(category_data: dict) -> Category:

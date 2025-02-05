@@ -27,7 +27,8 @@ def get_cart_items(user_id: str) -> list[dict]:
                 CartItem.quantity,                             # Quantity in cart
                 Product.name.label("product_name"),            # Product name (will become title)
                 Product.price.label("product_price"),          # Product price
-                Product.image_url.label("image_url")           # Product image URL
+                Product.image_url.label("image_url"),           # Product image URL
+                Product.stock.label("availableStock")
             )
             .join(Product, CartItem.product_id == Product.id)
             .filter(CartItem.cart.has(user_id=user_id))
@@ -42,7 +43,8 @@ def get_cart_items(user_id: str) -> list[dict]:
                 "title": item.product_name,                   # Use product name as title
                 "amount": item.quantity,                      # Quantity from the cart
                 "price": item.product_price.toString() if hasattr(item.product_price, "toString") else str(item.product_price),
-                "image": item.image_url                       # The image URL from Product
+                "image": item.image_url,                      # The image URL from Product
+                "availableStock": item.availableStock
             }
             for item in cart_items
         ]
@@ -132,7 +134,6 @@ def remove_item_from_cart(user_id: str, product_id: UUID) -> None:
         
         # Restore the stock for the product.
         product = validate_model(product_id, Product)
-        product.stock += cart_item.quantity
         db.session.add(product)
         
         # Remove the cart item.
@@ -180,7 +181,6 @@ def update_cart_item_quantity(user_id: str, product_id: UUID, quantity: int) -> 
         
         # Update the cart item quantity and product stock.
         cart_item.quantity = quantity
-        product.stock -= stock_adjustment
         
         db.session.add(cart_item)
         db.session.add(product)
