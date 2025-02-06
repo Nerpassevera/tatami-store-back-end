@@ -14,7 +14,7 @@ def login():
     # print('request.args', request.base_url)
     next_url = request.args.get("next", "/")
     session["next_url"] = next_url
-    # print("URL:", next_url)
+    print("LOGIN >> NEXT URL:", next_url)
     return oauth.cognito.authorize_redirect(redirect_uri=url_for("auth.callback", _external=True))
 
 # Callback to handle Cognito authentication
@@ -23,6 +23,7 @@ def callback():
     oauth = current_app.extensions["oauth"]
     token = oauth.cognito.authorize_access_token()
     next_url = session.pop("next_url", "/")
+    print("CALLBACK >> NEXT URL:", next_url)
     user = oauth.cognito.parse_id_token(token, nonce=None)
     session["user"] = user
 
@@ -42,7 +43,7 @@ def callback():
     encoded_user_data = base64.b64encode(json.dumps(user_data).encode()).decode()
 
     response = make_response(redirect(environ.get("FRONTEND_URL") + next_url))
-    response.set_cookie("user_data", encoded_user_data, httponly=False, samesite="Lax")
+    response.set_cookie("user_data", encoded_user_data, httponly=True, secure=True, samesite="None")
 
     return response
 

@@ -16,8 +16,13 @@ from .models import user, order, order_item, product, product_category, category
 
 def create_app(config=None):
     app = Flask(__name__)
-    CORS(app, supports_credentials=True, origins=[os.environ.get("FRONTEND_URL")])
-
+    CORS(app, 
+        supports_credentials=True, 
+        origins=[os.environ.get("FRONTEND_URL")],
+        allow_headers=["Content-Type", "Authorization"],
+        expose_headers=["Set-Cookie"],
+        methods=["GET", "POST", "PUT", "DELETE"]
+    )
     # ✅ Set a SECRET KEY for Flask Sessions
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")  
     # ⬆️ Replace `"supersecretkey123"` with an actual strong secret key or store it in `.env`
