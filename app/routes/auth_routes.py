@@ -43,7 +43,7 @@ def callback():
     encoded_user_data = base64.b64encode(json.dumps(user_data).encode()).decode()
 
     response = make_response(redirect(environ.get("FRONTEND_URL") + next_url))
-    response.set_cookie("user_data", encoded_user_data, httponly=True, secure=True, samesite="None")
+    response.set_cookie("user_data", encoded_user_data, httponly=False, secure=True, samesite="None")
 
     return response
 
