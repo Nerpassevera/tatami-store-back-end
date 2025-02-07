@@ -53,5 +53,6 @@ def logout():
     session.pop("user", None)
 
     cognito_logout_url = f"https://us-west-22z5rg2vjb.auth.us-west-2.amazoncognito.com/logout?client_id=7tqidgi3eb03j1i7pt1hsnkf7r&logout_uri={environ.get('FRONTEND_URL')}"
+    cognito_logout_url = f"https://us-west-22z5rg2vjb.auth.us-west-2.amazoncognito.com/logout?client_id=7tqidgi3eb03j1i7pt1hsnkf7r&logout_uri={environ.get('FRONTEND_URL')}"
     
     return redirect(cognito_logout_url)

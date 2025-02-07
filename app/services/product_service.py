@@ -1,22 +1,88 @@
 from uuid import UUID
 from app.models.product import Product
+from app.models.category import Category
+from app.models.product_category import ProductCategory
 from app.db import db
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 from app.services.utility_functions import validate_model
 from app.exceptions import ApplicationError
 
 
-def get_all_products() -> list[Product]:
-    """
-    Retrieve all products from the database.
+# def get_all_products() -> list[Product]:
+#     """
+#     Retrieve all products from the database.
 
-    Returns:
-        list[Product]: A list of all products.
-    """
+#     Returns:
+#         list[Product]: A list of all products.
+#     """
+#     try:
+#         return db.session.query(Product).all()
+#     except SQLAlchemyError as e:
+#         raise ApplicationError(f"Error retrieving products: {str(e)}")
+def get_all_products(search: str = None, category: str = None, order_by: str = None, price_max: str = None) -> dict:
+    print("SEARCH", search)
+    print("CATEGORY", category)
+    print("ORDER BY", order_by)
+    print("PRICE MAX", price_max)
+    
     try:
-        return db.session.query(Product).all()
-    except SQLAlchemyError as e:
-        raise ApplicationError(f"Error retrieving products: {str(e)}")
+        # Build the base query with outer joins to include products without categories
+        query = (
+            db.session.query(
+                Product,
+                func.coalesce(func.array_agg(Category.name), func.cast("{}", type_=func.array_agg(Category.name).type)).label("categories")
+            )
+            .outerjoin(ProductCategory, Product.id == ProductCategory.product_id)
+            .outerjoin(Category, Category.id == ProductCategory.category_id)
+            .group_by(Product.id)
+        )
+
+        # Filter by search term (case-insensitive) on name or description
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(Product.name.ilike(search_pattern) | Product.description.ilike(search_pattern))
+        
+        # Filter by category: only return products that contain the selected category.
+        # Using the PostgreSQL operator @> to check if the array of category names contains [category]
+        if category and category.lower() != "all":
+            query = query.having(func.array_agg(Category.name).op('@>')( [category] ))
+        
+        # Filter by price maximum
+        if price_max is not None:
+            query = query.filter(Product.price <= price_max)
+        
+        print("QUERY", query)
+        
+        # Apply ordering: options "a-z", "z-a", "high", "low"
+        if order_by:
+            if order_by == "a-z":
+                query = query.order_by(Product.name.asc())
+            elif order_by == "z-a":
+                query = query.order_by(Product.name.desc())
+            elif order_by == "high":
+                query = query.order_by(Product.price.desc())
+            elif order_by == "low":
+                query = query.order_by(Product.price.asc())
+        
+        products = query.all()
+
+        # Map each product row to a dictionary
+        products_list = [
+            {
+                "id": product.id,
+                "name": product.name,
+                "description": product.description,
+                "price": float(product.price),
+                "stock": product.stock,
+                "image_url": product.image_url,
+                "categories": categories if categories is not None else []
+            }
+            for product, categories in products
+        ]
+        return products_list
+    except Exception as e:
+        raise ApplicationError(f"Error retrieving products: {str(e)}") from e
 
 
 def get_product_by_id(product_id: UUID) -> Product:

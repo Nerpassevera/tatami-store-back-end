@@ -21,7 +21,7 @@ def create_app(config=None):
         origins=[os.environ.get("FRONTEND_URL"), "http://localhost:3000", "http://localhost:5173"],
         allow_headers=["Content-Type", "Authorization"],
         expose_headers=["Set-Cookie"],
-        methods=["GET", "POST", "PUT", "DELETE"]
+        methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
     )
     # ✅ Set a SECRET KEY for Flask Sessions
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")  

@@ -14,13 +14,19 @@ bp = Blueprint("product_bp", __name__, url_prefix="/products")
 
 @bp.route("/", methods=["GET"])
 def retrieve_all_products():
-    """
-    Retrieve all products.
-    """
     try:
-        products = get_all_products()
-        products_data = [product.to_dict() for product in products]
-        return jsonify(products_data), 200
+        search = request.args.get("search")
+        category = request.args.get("category")
+        order_by = request.args.get("order")
+        price_max = request.args.get("price")
+        if price_max:
+            try:
+                price_max = float(price_max)
+            except ValueError:
+                return jsonify({"error": "Invalid price_max value."}), 400
+
+        products = get_all_products(search, category, order_by, price_max)
+        return jsonify(products), 200
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400
     except Exception:
