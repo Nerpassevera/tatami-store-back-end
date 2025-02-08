@@ -21,7 +21,6 @@ def retrieve_all_categories():
     try:
         categories = get_all_categories()
         categories_data = [category.to_dict() for category in categories]
-        print("CAT", categories_data)
         return jsonify(categories_data), 200
     except ApplicationError as e:
         return jsonify({"error": str(e)}), 400

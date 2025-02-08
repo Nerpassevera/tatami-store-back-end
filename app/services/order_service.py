@@ -67,28 +67,23 @@ def place_order(user_id: UUID, address_id: int) -> Order:
     
     try:
         # Start the transaction
-        print("Session beggins ...")
         with db.session.begin():
             address = validate_model(address_id, Address)
-            print(f"Address: {address}")
-            print("Validating address ownership ...", address.user_id != user_id)
+
             if address.user_id != user_id:
                 raise AddressOwnershipError(address.id, user_id)
 
             # Fetch the user's cart with item prices
             items_with_prices = get_cart_items_with_prices(user_id)
-            print(items_with_prices)
 
             if not items_with_prices:
                 raise EmptyCartError(user_id)
             # Calculate the total amount
             total_amount = sum(item['price'] * item['quantity'] for item in items_with_prices)
-            print(f"Total amount: {total_amount}")
 
             # Create the order
             new_order = Order.from_dict(
                 {"user_id": user_id, "total_amount": total_amount, "address_id": address.id})
-            print(f"New order: {new_order.to_dict()}")
             db.session.add(new_order)
             db.session.flush()
 
