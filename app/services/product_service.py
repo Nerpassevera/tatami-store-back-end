@@ -21,11 +21,7 @@ from app.exceptions import ApplicationError
 #     except SQLAlchemyError as e:
 #         raise ApplicationError(f"Error retrieving products: {str(e)}")
 def get_all_products(search: str = None, category: str = None, order_by: str = None, price_max: str = None) -> dict:
-    print("SEARCH", search)
-    print("CATEGORY", category)
-    print("ORDER BY", order_by)
-    print("PRICE MAX", price_max)
-    
+
     try:
         # Build the base query with outer joins to include products without categories
         query = (
@@ -51,9 +47,7 @@ def get_all_products(search: str = None, category: str = None, order_by: str = N
         # Filter by price maximum
         if price_max is not None:
             query = query.filter(Product.price <= price_max)
-        
-        print("QUERY", query)
-        
+
         # Apply ordering: options "a-z", "z-a", "high", "low"
         if order_by:
             if order_by == "a-z":

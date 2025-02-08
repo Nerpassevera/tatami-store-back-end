@@ -14,8 +14,7 @@ def login():
     oauth = current_app.extensions["oauth"]
     next_url = request.args.get("next", "/")
     session["next_url"] = next_url
-    print("LOGIN >> NEXT URL:", next_url)
-    
+
     return oauth.cognito.authorize_redirect(redirect_uri=url_for("auth.callback", _external=True))
 
 # Callback to handle Cognito authentication
@@ -24,8 +23,6 @@ def callback():
     oauth = current_app.extensions["oauth"]
     token = oauth.cognito.authorize_access_token()
     next_url = session.pop("next_url", "/")
-    print("CALLBACK >> NEXT URL:", next_url)
-    
     user = oauth.cognito.parse_id_token(token, nonce=None)
     session["user"] = user
 
@@ -38,14 +35,13 @@ def callback():
         "given_name": user.get("given_name"),
     }
 
-    create_user_if_not_exists(user_data)
+    be_user_data = create_user_if_not_exists(user_data).to_dict()
 
     # Convert user data to a Base64 encoded JSON string
-    encoded_user_data = base64.urlsafe_b64encode(json.dumps(user_data).encode()).decode()
+    encoded_user_data = base64.urlsafe_b64encode(json.dumps(be_user_data).encode()).decode()
 
     # Redirect back to frontend with user data in URL
     frontend_url = f"{environ.get('FRONTEND_URL')}{next_url}?user_data={encoded_user_data}"
-    print(f"Redirecting to: {frontend_url}")
     return redirect(frontend_url)
 
 @bp.route("/logout")
