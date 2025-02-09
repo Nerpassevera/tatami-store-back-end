@@ -6,6 +6,7 @@ from app.services.category_service import (
     create_category,
     update_category,
     delete_category,
+    assign_category_to_product
 )
 from app.exceptions import ApplicationError
 
@@ -55,6 +56,22 @@ def create_category_endpoint():
         return jsonify({"error": str(e)}), 400
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
+
+
+@bp.route("/<product_id>/<category_id>", methods=["POST"])
+def assign_product_to_category(product_id, category_id):
+    """
+    Create a new category.
+    """
+    try:
+        product_id = UUID(product_id)
+        category_id = int(category_id)
+        confirmation = assign_category_to_product(product_id, category_id)
+        return confirmation, 201
+    except ApplicationError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "Unexpected error occurred - {e}"}), 500
 
 
 @bp.route("/<category_id>", methods=["PUT"])

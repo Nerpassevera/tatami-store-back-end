@@ -53,7 +53,6 @@ def retrieve_user(user_id):
     Returns:
         Response: JSON response containing the user's data or an error message.
     """
-    user_id = UUID(user_id)
     user = get_user_by_id(user_id)
     return jsonify(user.to_dict()), 200
 
@@ -70,7 +69,6 @@ def update_user_endpoint(user_id):
         JSON response containing the updated user or an error message.
     """
     updated_data = request.json
-    user_id = UUID(user_id)
     updated_user = update_user(user_id, updated_data)
 
     return jsonify(updated_user.to_dict()), 200
@@ -87,6 +85,5 @@ def delete_user_endpoint(user_id):
     Returns:
         JSON response indicating the result of the operation or an error message.
     """
-    user_id = UUID(user_id)
     message = delete_user(user_id)
     return jsonify({"message": message}), 200

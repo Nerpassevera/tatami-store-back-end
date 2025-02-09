@@ -17,13 +17,12 @@ def retrieve_cart_items(user_id):
     Retrieve all cart items for a user along with their respective product prices.
 
     Args:
-        user_id (UUID): The ID of the user.
+        user_id (String): The ID of the user.
 
     Returns:
         JSON response containing cart items or an error message.
     """
     try:
-        user_id = UUID(user_id)
         cart_items = get_cart_items_with_prices(user_id)
         return jsonify(cart_items), 200
     except ApplicationError as e:
@@ -46,7 +45,7 @@ def create_order():
     """
     try:
         data = request.json
-        user_id = UUID(data.get("user_id").strip())
+        user_id = data.get("user_id").strip()
         address_id = data.get("address_id")
 
         if not user_id or not address_id:
@@ -82,7 +81,6 @@ def retrieve_user_orders(user_id):
         JSON response with the user's orders or an error message.
     """
     try:
-        user_id = UUID(user_id)
 
         # Extract filters from query parameters
         start_date = request.args.get("start_date")

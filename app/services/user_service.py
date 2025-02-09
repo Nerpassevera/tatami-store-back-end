@@ -147,13 +147,11 @@ def update_user(user_id: UUID, updated_data: dict) -> User:
     """
     try:
         user = validate_model(user_id, User)
-        print("initial user id: ", user.id)
 
         for key, value in updated_data.items():
             if hasattr(user, key):
                 setattr(user, key, value)
 
-        print("user id after update: ", user.id)
         db.session.commit()
         return user
     except SQLAlchemyError as e:

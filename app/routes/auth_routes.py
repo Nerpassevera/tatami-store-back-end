@@ -1,7 +1,9 @@
 import json
 import base64
+from urllib.parse import urlencode
 from os import environ
-from flask import Blueprint, redirect, url_for, session, request, current_app, jsonify, make_response
+from flask import Blueprint, redirect, url_for, session, request, current_app
+
 from app.services.user_service import create_user_if_not_exists
 
 bp = Blueprint("auth", __name__)
@@ -10,11 +12,9 @@ bp = Blueprint("auth", __name__)
 @bp.route("/login")
 def login():
     oauth = current_app.extensions["oauth"]
-
-    print('request.args', request.base_url)
     next_url = request.args.get("next", "/")
     session["next_url"] = next_url
-    print("URL:", next_url)
+
     return oauth.cognito.authorize_redirect(redirect_uri=url_for("auth.callback", _external=True))
 
 # Callback to handle Cognito authentication
@@ -35,22 +35,20 @@ def callback():
         "given_name": user.get("given_name"),
     }
 
-    create_user_if_not_exists(user_data)
+    be_user_data = create_user_if_not_exists(user_data).to_dict()
 
+    # Convert user data to a Base64 encoded JSON string
+    encoded_user_data = base64.urlsafe_b64encode(json.dumps(be_user_data).encode()).decode()
 
-    # Convert user_data to JSON and Base64 encode it
-    encoded_user_data = base64.b64encode(json.dumps(user_data).encode()).decode()
-
-    response = make_response(redirect('http://localhost:5173'))
-    response.set_cookie("user_data", encoded_user_data, httponly=False, samesite="Lax")
-
-    return response
+    # Redirect back to frontend with user data in URL
+    frontend_url = f"{environ.get('FRONTEND_URL')}{next_url}?user_data={encoded_user_data}"
+    return redirect(frontend_url)
 
 @bp.route("/logout")
 def logout():
     session.pop("user", None)
 
-    cognito_logout_url = f"https://us-west-22z5rg2vjb.auth.us-west-2.amazoncognito.com/logout?client_id=7tqidgi3eb03j1i7pt1hsnkf7r&logout_uri={environ.get("FRONTEND_URL")}"
-    response = make_response(redirect(cognito_logout_url))
-    response.set_cookie("user_data", "", expires=0)
-    return response
+    cognito_logout_url = f"https://us-west-22z5rg2vjb.auth.us-west-2.amazoncognito.com/logout?client_id=7tqidgi3eb03j1i7pt1hsnkf7r&logout_uri={environ.get('FRONTEND_URL')}"
+    cognito_logout_url = f"https://us-west-22z5rg2vjb.auth.us-west-2.amazoncognito.com/logout?client_id=7tqidgi3eb03j1i7pt1hsnkf7r&logout_uri={environ.get('FRONTEND_URL')}"
+    
+    return redirect(cognito_logout_url)
