@@ -17,7 +17,7 @@ Methods:
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, ForeignKey
+from sqlalchemy import String, Integer, ForeignKey, Float
 
 from app.db import db
 
@@ -33,11 +33,14 @@ class Address(db.Model):
         user_id (String): The unique identifier for the user associated with the address.
         label (Optional[str]): An optional label for the address (e.g., "Home", "Work").
         house_number (str): The house number of the address.
-        road (str): The road or street name of the address.
+        street (str): The street name of the address.
         city (str): The city of the address.
         state (str): The state of the address.
         postcode (str): The postal code of the address.
         country (str): The country of the address.
+        unit (Optional[str]): An optional unit or apartment number.
+        latitude (Optional[float]): The latitude coordinate.
+        longitude (Optional[float]): The longitude coordinate.
         user (User): The user associated with the address.
 
     Methods:
@@ -49,14 +52,17 @@ class Address(db.Model):
 
     # Fields
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[String] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     label: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     house_number: Mapped[str] = mapped_column(String, nullable=False)
-    road: Mapped[str] = mapped_column(String, nullable=False)
+    street: Mapped[str] = mapped_column(String, nullable=False)
     city: Mapped[str] = mapped_column(String, nullable=False)
     state: Mapped[str] = mapped_column(String, nullable=False)
     postcode: Mapped[str] = mapped_column(String, nullable=False)
     country: Mapped[str] = mapped_column(String, nullable=False)
+    unit: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="addresses")
