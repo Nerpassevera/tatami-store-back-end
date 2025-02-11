@@ -43,11 +43,13 @@ app/
 
 ## Getting Started
 
+## Getting Started
+
 1. Create and activate virtual environment:
 
 ```bash
 python -m venv venv
-source venv/bin/activate  
+source venv/bin/activate
 ```
 
 2. Install dependencies:
