@@ -20,27 +20,22 @@ def create_app(config=None):
         supports_credentials=True, 
         origins=[os.environ.get("FRONTEND_URL"), "http://localhost:3000", "http://localhost:5173"],
         allow_headers=["Content-Type", "Authorization"],
-        expose_headers=["Set-Cookie"],
         methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
     )
-    # ✅ Set a SECRET KEY for Flask Sessions
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")  
-    # ⬆️ Replace `"supersecretkey123"` with an actual strong secret key or store it in `.env`
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 
     if config:
-        app.config.update(config)  # Apply test configuration if provided
+        app.config.update(config)
 
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # # ✅ Register OAuth with the app
     global oauth
     oauth = register_oauth(app)
 
-    # ✅ Register Blueprints
     app.register_blueprint(user_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(cart_bp)

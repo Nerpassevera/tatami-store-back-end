@@ -28,16 +28,16 @@ COGNITO_REGION = environ.get("AWS_COGNITO_REGION")
 COGNITO_ISSUER = f"https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_POOL_ID}"
 JWKS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
 
-
 jwks = requests.get(JWKS_URL).json()
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.cookies.get("id_token")
-        if not token:
-            return jsonify({"error": "ID token missing"}), 401
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Authorization header missing or invalid"}), 401
 
+        token = auth_header.split(" ")[1]
         try:
             unverified_header = jwt.get_unverified_header(token)
             kid = unverified_header.get("kid")
@@ -57,7 +57,7 @@ def token_required(f):
                 token,
                 key,
                 algorithms=["RS256"],
-                audience=environ.get("AWS_COGNITO_CLIENT_ID"),
+                audience=audience,
                 issuer=COGNITO_ISSUER,
                 options={"verify_at_hash": False}
             )
