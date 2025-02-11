@@ -20,7 +20,7 @@ def create_app(config=None):
         supports_credentials=True, 
         origins=[os.environ.get("FRONTEND_URL"), "http://localhost:3000", "http://localhost:5173"],
         allow_headers=["Content-Type", "Authorization"],
-        methods=["GET", "POST", "PUT", "DELETE", "PATCH"]
+        methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
     )
     app.secret_key = os.environ.get("FLASK_SECRET_KEY")  
 
