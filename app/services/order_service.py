@@ -1,7 +1,23 @@
+"""
+This module provides services for managing orders, including placing orders,
+retrieving user orders, and changing order statuses.
+Functions:
+    get_cart_items_with_prices(user_id: UUID) -> list[dict]:
+    place_order(user_id: UUID, address_id: int) -> Order:
+    get_user_orders(
+        order_by: str = "order_date",
+        order_direction: str = "desc"
+    change_order_status(order_id: UUID, new_status: str) -> Order:
+        Changes the status of an order. If the order is pending and being cancelled,
+        restocks the products. Raises errors for invalid status changes.
+"""
+
 from uuid import UUID
 from datetime import datetime
+
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import joinedload
+
 from app.models.order import Order, OrderStatus
 from app.models.order_item import OrderItem
 from app.models.cart_item import CartItem
@@ -15,10 +31,8 @@ from app.exceptions import ApplicationError, StockError, EmptyCartError, Address
 def get_cart_items_with_prices(user_id: UUID) -> list[dict]:
     """
     Retrieves all cart items for a user along with their respective product prices.
-
     Args:
         user_id (UUID): The ID of the user.
-
     Returns:
         list[dict]: A list of dictionaries, where each dictionary contains
                     cart item details and the corresponding product price.
@@ -32,11 +46,10 @@ def get_cart_items_with_prices(user_id: UUID) -> list[dict]:
                 Product.price
             )
             .join(Product, CartItem.product_id == Product.id)
-            .filter(CartItem.cart.has(user_id=user_id))  # Filter by user's cart
+            .filter(CartItem.cart.has(user_id=user_id))
             .all()
         )
 
-        # Convert the results into a list of dictionaries
         return [
             {
                 "cart_id": item.cart_id,
@@ -47,7 +60,7 @@ def get_cart_items_with_prices(user_id: UUID) -> list[dict]:
             for item in cart_items
         ]
     except Exception as e:
-        raise ApplicationError(f"Error retrieving cart items for user ID {user_id}: {str(e)}") from e
+        raise ApplicationError(f"Error retrieving cart items for user ID {user_id}:{str(e)}") from e
 
 
 def place_order(user_id: UUID, address_id: int) -> Order:
@@ -64,38 +77,31 @@ def place_order(user_id: UUID, address_id: int) -> Order:
     Raises:
         Exception: If the user's cart is empty, a product is out of stock, or other errors occur.
     """
-    
+
     try:
-        # Start the transaction
         with db.session.begin():
             address = validate_model(address_id, Address)
 
             if address.user_id != user_id:
                 raise AddressOwnershipError(address.id, user_id)
 
-            # Fetch the user's cart with item prices
             items_with_prices = get_cart_items_with_prices(user_id)
 
             if not items_with_prices:
                 raise EmptyCartError(user_id)
-            # Calculate the total amount
             total_amount = sum(item['price'] * item['quantity'] for item in items_with_prices)
 
-            # Create the order
             new_order = Order.from_dict(
                 {"user_id": user_id, "total_amount": total_amount, "address_id": address.id})
             db.session.add(new_order)
             db.session.flush()
 
             for item in items_with_prices:
-                # Validate the product exists and get the product instance
                 product = validate_model(item['product_id'], Product)
 
-                # Check stock availability
                 if product.stock < item["quantity"]:
                     raise StockError(product.name, item["quantity"], product.stock)
 
-                # Create order item
                 order_item = OrderItem.from_dict({
                     "order_id": new_order.id,
                     "product_id": product.id,
@@ -104,11 +110,9 @@ def place_order(user_id: UUID, address_id: int) -> Order:
                 })
                 db.session.add(order_item)
 
-                # Subtract stock
                 product.stock -= item["quantity"]
                 db.session.add(product)
 
-            # Clear the user's cart
             cart_id = items_with_prices[0]["cart_id"]
             db.session.query(CartItem).filter_by(cart_id=cart_id).delete()
 
@@ -127,8 +131,8 @@ def get_user_orders(
     min_total: float = None,
     max_total: float = None,
     status: str = None,
-    order_by: str = "order_date",  # Default sorting by order_date
-    order_direction: str = "desc"  # Default sorting direction is descending
+    order_by: str = "order_date",
+    order_direction: str = "desc"
 ) -> list[dict]:
     """
     Retrieves all orders placed by a specific user with optional filters and ordering.
@@ -147,14 +151,12 @@ def get_user_orders(
         list[dict]: A list of dictionaries containing order details.
     """
     try:
-        # Base query for orders
         query = (
             db.session.query(Order)
             .filter_by(user_id=user_id)
             .options(joinedload(Order.order_items).joinedload(OrderItem.product))
         )
 
-        # Apply filters if provided
         if start_date:
             query = query.filter(Order.order_date >= start_date)
         if end_date:
@@ -166,7 +168,6 @@ def get_user_orders(
         if status:
             query = query.filter(Order.status == status)
 
-        # Apply ordering
         order_column = getattr(Order, order_by, None)
         if not order_column:
             raise ValueError(f"Invalid order_by field: {order_by}")
@@ -177,10 +178,8 @@ def get_user_orders(
         else:
             raise ValueError(f"Invalid order_direction: {order_direction}")
 
-        # Execute the query
         orders = query.all()
 
-        # Process and structure the orders
         orders_data = []
         for order in orders:
             order_data = {
@@ -208,16 +207,16 @@ def get_user_orders(
 
 
 def change_order_status(order_id: UUID, new_status: str) -> Order:
-
-            # Validate the new status
+    """
+    Changes the status of an order. If the order is pending and being cancelled,
+    restocks the products. Raises errors for invalid status changes.
+    """
     if new_status not in OrderStatus.__members__:
         raise StatusError(new_status)
 
     with db.session.begin():
-        # Retrieve the order
         order = validate_model(order_id, Order)
         if order.status == OrderStatus.PENDING and new_status.upper() == "CANCELLED":
-            # If the order is pending and being cancelled, restock the products
             for item in order.order_items:
                 product = validate_model(item.product_id, Product)
                 product.stock += item.quantity
