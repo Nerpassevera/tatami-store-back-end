@@ -7,10 +7,12 @@ from app.services.cart_service import (
     update_cart_item_quantity,
 )
 from app.exceptions import ApplicationError
+from app.services.auth_services import token_required
 
 bp = Blueprint("cart_bp", __name__, url_prefix="/cart")
 
 @bp.route("/<user_id>", methods=["GET"])
+@token_required
 def retrieve_cart_items(user_id):
     """
     Retrieve all items in the cart for a specific user.
@@ -24,6 +26,7 @@ def retrieve_cart_items(user_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 @bp.route("/<user_id>", methods=["POST"])
+@token_required
 def add_item_to_cart_endpoint(user_id):
     """
     Add an item to the user's cart.
@@ -45,6 +48,7 @@ def add_item_to_cart_endpoint(user_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 @bp.route("/<user_id>/<product_id>", methods=["DELETE"])
+@token_required
 def remove_item_from_cart_endpoint(user_id, product_id):
     """
     Remove an item from the user's cart by product ID.
@@ -59,6 +63,7 @@ def remove_item_from_cart_endpoint(user_id, product_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 @bp.route("/<user_id>/<product_id>", methods=["PATCH"])
+@token_required
 def update_cart_item_quantity_endpoint(user_id, product_id):
     """
     Update the quantity of an item in the user's cart by product ID.

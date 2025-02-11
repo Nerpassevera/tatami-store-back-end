@@ -3,11 +3,12 @@ from flask import Blueprint, request, jsonify
 from app.services.product_service import (
     get_all_products,
     get_product_by_id,
-    create_product,
-    update_product,
-    delete_product,
+    # create_product,
+    # update_product,
+    # delete_product,
 )
 from app.exceptions import ApplicationError
+# from app.services.auth_services import token_required
 
 bp = Blueprint("product_bp", __name__, url_prefix="/products")
 
@@ -48,47 +49,53 @@ def retrieve_product(product_id):
         return jsonify({"error": "Unexpected error occurred."}), 500
 
 
-@bp.route("/", methods=["POST"])
-def create_product_endpoint():
-    """
-    Create a new product.
-    """
-    try:
-        product_data = request.json
-        new_product = create_product(product_data)
-        return jsonify(new_product.to_dict()), 201
-    except ApplicationError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception:
-        return jsonify({"error": "Unexpected error occurred!"}), 500
+# Route for future Admin portal implementation
+# @bp.route("/", methods=["POST"])
+# @token_required
+# def create_product_endpoint():
+#     """
+#     Create a new product.
+#     """
+#     try:
+#         product_data = request.json
+#         new_product = create_product(product_data)
+#         return jsonify(new_product.to_dict()), 201
+#     except ApplicationError as e:
+#         return jsonify({"error": str(e)}), 400
+#     except Exception:
+#         return jsonify({"error": "Unexpected error occurred!"}), 500
 
 
-@bp.route("/<product_id>", methods=["PUT"])
-def update_product_endpoint(product_id):
-    """
-    Update an existing product by its ID.
-    """
-    try:
-        product_id = UUID(product_id)
-        product_data = request.json
-        updated_product = update_product(product_id, product_data)
-        return jsonify(updated_product.to_dict()), 200
-    except ApplicationError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+# Route for future Admin portal implementation
+# @bp.route("/<product_id>", methods=["PUT"])
+# @token_required
+# def update_product_endpoint(product_id):
+#     """
+#     Update an existing product by its ID.
+#     """
+#     try:
+#         product_id = UUID(product_id)
+#         product_data = request.json
+#         updated_product = update_product(product_id, product_data)
+#         return jsonify(updated_product.to_dict()), 200
+#     except ApplicationError as e:
+#         return jsonify({"error": str(e)}), 400
+#     except Exception:
+#         return jsonify({"error": "Unexpected error occurred."}), 500
 
 
-@bp.route("/<product_id>", methods=["DELETE"])
-def delete_product_endpoint(product_id):
-    """
-    Delete a product by its ID.
-    """
-    try:
-        product_id = UUID(product_id)
-        message = delete_product(product_id)
-        return jsonify({"message": message}), 200
-    except ApplicationError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception:
-        return jsonify({"error": "Unexpected error occurred."}), 500
+# Route for future Admin portal implementation
+# @bp.route("/<product_id>", methods=["DELETE"])
+# @token_required
+# def delete_product_endpoint(product_id):
+#     """
+#     Delete a product by its ID.
+#     """
+#     try:
+#         product_id = UUID(product_id)
+#         message = delete_product(product_id)
+#         return jsonify({"message": message}), 200
+#     except ApplicationError as e:
+#         return jsonify({"error": str(e)}), 400
+#     except Exception:
+#         return jsonify({"error": "Unexpected error occurred."}), 500

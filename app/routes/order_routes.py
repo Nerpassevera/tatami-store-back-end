@@ -7,11 +7,14 @@ from app.services.order_service import (
     change_order_status
 )
 from app.exceptions import ApplicationError
+from app.services.auth_services import token_required
+
 
 bp = Blueprint("order_bp", __name__, url_prefix="/orders")
 
 
 @bp.route("/cart-items/<user_id>", methods=["GET"])
+@token_required
 def retrieve_cart_items(user_id):
     """
     Retrieve all cart items for a user along with their respective product prices.
@@ -32,6 +35,7 @@ def retrieve_cart_items(user_id):
 
 
 @bp.route("/", methods=["POST"])
+@token_required
 def create_order():
     """
     Place an order for a user.
@@ -64,6 +68,7 @@ def create_order():
 
 
 @bp.route("/<user_id>", methods=["GET"])
+@token_required
 def retrieve_user_orders(user_id):
     """
     Retrieve all orders for a specific user with optional filters.
@@ -81,7 +86,6 @@ def retrieve_user_orders(user_id):
         JSON response with the user's orders or an error message.
     """
     try:
-
         # Extract filters from query parameters
         start_date = request.args.get("start_date")
         end_date = request.args.get("end_date")
@@ -109,32 +113,34 @@ def retrieve_user_orders(user_id):
         return jsonify({"error": f"Unexpected error occurred - {e}"}), 500
 
 
-@bp.route("/<order_id>/status", methods=["PATCH"])
-def update_order_status(order_id):
-    """
-    Update the status of an order.
+# Route for future Admin portal implementation
+# @bp.route("/<order_id>/status", methods=["PATCH"])
+# @token_required
+# def update_order_status(order_id):
+#     """
+#     Update the status of an order.
 
-    Request Body:
-        - new_status (str): The new status for the order.
+#     Request Body:
+#         - new_status (str): The new status for the order.
 
-    Returns:
-        JSON response with the updated order details or an error message.
-    """
-    try:
-        data = request.json
-        new_status = data.get("new_status")
+#     Returns:
+#         JSON response with the updated order details or an error message.
+#     """
+#     try:
+#         data = request.json
+#         new_status = data.get("new_status")
 
-        if not new_status:
-            return jsonify({"error": "Missing new_status in request body."}), 400
+#         if not new_status:
+#             return jsonify({"error": "Missing new_status in request body."}), 400
 
-        order_id = UUID(order_id)
-        updated_order = change_order_status(order_id, new_status)
-        return jsonify({
-            "order_id": str(updated_order.id),
-            "new_status": updated_order.status.value,
-            "message": "Order status updated successfully!"
-        }), 200
-    except ApplicationError as e:
-        return jsonify({"error": str(e)}), 400
-    except Exception as e:
-        return jsonify({"error": f"Unexpected error occurred - {e}"}), 500
+#         order_id = UUID(order_id)
+#         updated_order = change_order_status(order_id, new_status)
+#         return jsonify({
+#             "order_id": str(updated_order.id),
+#             "new_status": updated_order.status.value,
+#             "message": "Order status updated successfully!"
+#         }), 200
+#     except ApplicationError as e:
+#         return jsonify({"error": str(e)}), 400
+#     except Exception as e:
+#         return jsonify({"error": f"Unexpected error occurred - {e}"}), 500
