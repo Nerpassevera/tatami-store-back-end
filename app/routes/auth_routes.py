@@ -36,13 +36,15 @@ def callback():
     }
 
     be_user_data = create_user_if_not_exists(user_data).to_dict()
-
+    id_token = token.get("id_token", "failed to save id_token")
     # Convert user data to a Base64 encoded JSON string
     encoded_user_data = base64.urlsafe_b64encode(json.dumps(be_user_data).encode()).decode()
 
     # Redirect back to frontend with user data in URL
     frontend_url = f"{environ.get('FRONTEND_URL')}{next_url}?user_data={encoded_user_data}"
-    return redirect(frontend_url)
+    response = redirect(frontend_url)
+    response.set_cookie("id_token", id_token, httponly=True, secure=True)
+    return response
 
 @bp.route("/logout")
 def logout():

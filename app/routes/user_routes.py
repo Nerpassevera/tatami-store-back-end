@@ -1,7 +1,7 @@
 from uuid import UUID
 from flask import Blueprint, request, jsonify
 from app.services.user_service import *
-from app.models.user import User
+from app.services.auth_services import token_required
 
 bp = Blueprint("user_bp", __name__, url_prefix="/users")
 
@@ -28,21 +28,24 @@ def create_user():
 
     return jsonify({"id": str(new_user.id), "message": "User created with cart!"}), 201
 
-@bp.route("/", methods=["GET"])
-def retrieve_all_users():
-    """
-    Endpoint to retrieve all users.
+# Route for future Admin portal implementation
+# @bp.route("/", methods=["GET"])
+# @token_required
+# def retrieve_all_users():
+#     """
+#     Endpoint to retrieve all users.
 
-    Returns:
-        Response: JSON response containing all users.
-    """
-    users = get_all_users()
-    # Convert each user object to a dictionary representation
-    users_data = [user.to_dict() for user in users]
-    return jsonify(users_data), 200
+#     Returns:
+#         Response: JSON response containing all users.
+#     """
+#     users = get_all_users()
+#     # Convert each user object to a dictionary representation
+#     users_data = [user.to_dict() for user in users]
+#     return jsonify(users_data), 200
 
 
 @bp.route("/<user_id>", methods=["GET"])
+@token_required
 def retrieve_user(user_id):
     """
     Endpoint to retrieve a single user by ID.
@@ -57,33 +60,36 @@ def retrieve_user(user_id):
     return jsonify(user.to_dict()), 200
 
 
-@bp.route("/<user_id>", methods=["PUT"])
-def update_user_endpoint(user_id):
-    """
-    Endpoint to update a user's information.
+# Route for future user account update feature implementation
+# @bp.route("/<user_id>", methods=["PUT"])
+# @token_required
+# def update_user_endpoint(user_id):
+#     """
+#     Endpoint to update a user's information.
 
-    Args:
-        user_id: The ID of the user to update.
+#     Args:
+#         user_id: The ID of the user to update.
 
-    Returns:
-        JSON response containing the updated user or an error message.
-    """
-    updated_data = request.json
-    updated_user = update_user(user_id, updated_data)
+#     Returns:
+#         JSON response containing the updated user or an error message.
+#     """
+#     updated_data = request.json
+#     updated_user = update_user(user_id, updated_data)
 
-    return jsonify(updated_user.to_dict()), 200
+#     return jsonify(updated_user.to_dict()), 200
 
 
-@bp.route("/<user_id>", methods=["DELETE"])
-def delete_user_endpoint(user_id):
-    """
-    Endpoint to delete a user by ID.
+# Route for future user account deletion feature implementation
+# @bp.route("/<user_id>", methods=["DELETE"])
+# def delete_user_endpoint(user_id):
+#     """
+#     Endpoint to delete a user by ID.
 
-    Args:
-        user_id: The ID of the user to delete.
+#     Args:
+#         user_id: The ID of the user to delete.
 
-    Returns:
-        JSON response indicating the result of the operation or an error message.
-    """
-    message = delete_user(user_id)
-    return jsonify({"message": message}), 200
+#     Returns:
+#         JSON response indicating the result of the operation or an error message.
+#     """
+#     message = delete_user(user_id)
+#     return jsonify({"message": message}), 200
