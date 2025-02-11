@@ -1,9 +1,3 @@
-"""Module for managing product-category relationships in the database.
-
-This module defines the association table between products and categories,
-implementing a many-to-many relationship between these entities.
-"""
-
 from uuid import UUID
 from typing import TYPE_CHECKING
 
@@ -18,13 +12,17 @@ if TYPE_CHECKING:
 
 
 class ProductCategory(db.Model):
-    """Association model representing the many-to-many relationship between products and categories.
-    
-    This model serves as a junction table that connects products with their categories
-    and vice versa, allowing products to have multiple categories and categories to
-    contain multiple products.
     """
-
+    Represents the association between products and categories in the database.
+    Attributes:
+        __tablename__ (str): The name of the table in the database.
+        product_id (UUID): The ID of the product, which is a foreign key referencing the products table.
+        category_id (int): The ID of the category, which is a foreign key referencing the categories table.
+        product (Product): The relationship to the Product model.
+        category (Category): The relationship to the Category model.
+    Methods:
+        __repr__(): Returns a string representation of the ProductCategory instance.
+    """
     __tablename__ = "product_categories"
 
     # Fields

@@ -1,11 +1,4 @@
-"""Module for managing product categories in the database.
-
-This module defines the Category model which represents product categories
-and their relationships with products through the ProductCategory association.
-"""
-
 from typing import Optional, TYPE_CHECKING
-from uuid import UUID
 
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,18 +10,19 @@ if TYPE_CHECKING:
 
 
 class Category(db.Model):
-    """Category model representing product classifications in the system.
-    
+    """
+    Represents a category in the tatami store.
     Attributes:
-        id: Unique identifier for the category
-        name: Category name (unique)
-        description: Optional category description
-        products: List of associated products through ProductCategory
+        id (int): The unique identifier for the category.
+        name (str): The name of the category.
+        description (Optional[str]): A brief description of the category.
+        products (list[ProductCategory]): The list of product categories associated with this category.
     """
     __tablename__ = "categories"
 
     # Fields
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
@@ -37,18 +31,3 @@ class Category(db.Model):
         "ProductCategory",
         back_populates="category",
     )
-
-    # def __repr__(self) -> str:
-    #     """Return string representation of the Category."""
-    #     return f"<Category(name={self.name})>"
-
-    # def to_dict(self) -> dict:
-    #     """Convert the category instance to a dictionary.
-        
-    #     Returns:
-    #         dict: Category data in dictionary format
-    #     """
-    #     return {
-    #         "name": self.name,
-    #         "description": self.description
-    #     }

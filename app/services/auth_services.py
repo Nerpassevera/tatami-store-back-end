@@ -1,3 +1,27 @@
+"""
+This module provides authentication services for the Tatami Store backend application.
+It includes functions to register OAuth with AWS Cognito
+and a decorator to require a valid JWT token.
+
+Functions:
+    register_oauth(app): Attach OAuth to the app and configure AWS Cognito.
+    token_required(f): Decorator to require a valid JWT token.
+
+Constants:
+    COGNITO_POOL_ID: AWS Cognito User Pool ID.
+    COGNITO_REGION: AWS Cognito Region.
+    COGNITO_ISSUER: URL of the AWS Cognito issuer.
+    JWKS_URL: URL to fetch the JSON Web Key Set (JWKS).
+
+Dependencies:
+    os.environ: To access environment variables.
+    functools.wraps: To preserve the original function's metadata.
+    flask.request: To access the incoming request.
+    flask.jsonify: To create JSON responses.
+    requests: To make HTTP requests.
+    jose.jwt: To handle JWT operations.
+    authlib.integrations.flask_client.OAuth: To handle OAuth integration with Flask.
+"""
 from os import environ
 from functools import wraps
 from flask import request, jsonify
@@ -7,21 +31,23 @@ from authlib.integrations.flask_client import OAuth
 
 oauth = OAuth()
 
+
 def register_oauth(app):
     """Attach OAuth to the app and configure AWS Cognito."""
     oauth.init_app(app)
     app.extensions["oauth"] = oauth
 
     oauth.register(
-        name='cognito',
-        authority='https://cognito-idp.us-west-2.amazonaws.com/us-west-2_2z5rG2vjB',
-        client_id='7tqidgi3eb03j1i7pt1hsnkf7r',
+        name="cognito",
+        authority=environ.get("AWS_COGNITO_AUTHORITY"),
+        client_id=environ.get("AWS_COGNITO_CLIENT_ID"),
         client_secret=environ.get("AWS_COGNITO_CLIENT_SECRET"),
-        server_metadata_url='https://cognito-idp.us-west-2.amazonaws.com/us-west-2_2z5rG2vjB/.well-known/openid-configuration',
-        client_kwargs={'scope': 'openid email phone profile'},
-        redirect_uri="https://tatami-store-be-4d8522a2c022.herokuapp.com/auth/callback"
+        server_metadata_url=environ.get("AWS_COGNITO_METADATA_URL"),
+        client_kwargs={"scope": "openid email phone profile"},
+        redirect_uri=f"{environ.get("BACKEND_URL")}/auth/callback"
     )
     return oauth
+
 
 COGNITO_POOL_ID = environ.get("AWS_COGNITO_POOL_ID")
 COGNITO_REGION = environ.get("AWS_COGNITO_REGION")
@@ -30,7 +56,9 @@ JWKS_URL = f"{COGNITO_ISSUER}/.well-known/jwks.json"
 
 jwks = requests.get(JWKS_URL).json()
 
+
 def token_required(f):
+    """Decorator to require a valid JWT token."""
     @wraps(f)
     def decorated(*args, **kwargs):
         auth_header = request.headers.get("Authorization")
@@ -48,11 +76,12 @@ def token_required(f):
                     break
             if key is None:
                 raise JWTError("Public key not found in JWKS")
-            
+
             audience = environ.get("AWS_COGNITO_CLIENT_ID")
             if not audience:
-                raise JWTError("AWS_COGNITO_CLIENT_ID environment variable not set")
-            
+                raise JWTError(
+                    "AWS_COGNITO_CLIENT_ID environment variable not set")
+
             payload = jwt.decode(
                 token,
                 key,

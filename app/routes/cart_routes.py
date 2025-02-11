@@ -1,3 +1,34 @@
+"""
+This module defines the routes for managing the shopping cart in the application.
+
+Routes:
+    /cart/<user_id> [GET]:
+        - Retrieve all items in the cart for a specific user.
+        - Requires authentication.
+
+    /cart/<user_id> [POST]:
+        - Add an item to the user's cart.
+        - Requires authentication.
+        - Expects JSON payload with 'product_id' and 'quantity'.
+
+    /cart/<user_id>/<product_id> [DELETE]:
+        - Remove an item from the user's cart by product ID.
+        - Requires authentication.
+
+    /cart/<user_id>/<product_id> [PATCH]:
+        - Update the quantity of an item in the user's cart by product ID.
+        - Requires authentication.
+        - Expects JSON payload with 'quantity'.
+
+Dependencies:
+    - uuid.UUID: For handling UUIDs.
+    - flask.Blueprint: For creating a blueprint for the cart routes.
+    - flask.request: For handling incoming HTTP requests.
+    - flask.jsonify: For creating JSON responses.
+    - app.services.cart_service: Contains functions for cart operations.
+    - app.exceptions.ApplicationError: Custom exception for application errors.
+    - app.services.auth_services.token_required: Decorator for requiring authentication.
+"""
 from uuid import UUID
 from flask import Blueprint, request, jsonify
 from app.services.cart_service import (
@@ -10,6 +41,7 @@ from app.exceptions import ApplicationError
 from app.services.auth_services import token_required
 
 bp = Blueprint("cart_bp", __name__, url_prefix="/cart")
+
 
 @bp.route("/<user_id>", methods=["GET"])
 @token_required
@@ -24,6 +56,7 @@ def retrieve_cart_items(user_id):
         return jsonify({"error": str(e)}), 400
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
+
 
 @bp.route("/<user_id>", methods=["POST"])
 @token_required
@@ -47,6 +80,7 @@ def add_item_to_cart_endpoint(user_id):
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
 
+
 @bp.route("/<user_id>/<product_id>", methods=["DELETE"])
 @token_required
 def remove_item_from_cart_endpoint(user_id, product_id):
@@ -61,6 +95,7 @@ def remove_item_from_cart_endpoint(user_id, product_id):
         return jsonify({"error": str(e)}), 400
     except Exception:
         return jsonify({"error": "Unexpected error occurred."}), 500
+
 
 @bp.route("/<user_id>/<product_id>", methods=["PATCH"])
 @token_required

@@ -1,15 +1,22 @@
-"""
-This module defines the base class for SQLAlchemy models.
-
-Classes:
-    Base: A declarative base class for all SQLAlchemy models.
-"""
-
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import inspect
 
 
 class Base(DeclarativeBase):
+    """
+    Base class for SQLAlchemy models.
+    This class provides common functionality for all models, including automatic
+    table name generation, dictionary conversion, and instance creation from a dictionary.
+
+    Attributes:
+        __abstract__ (bool): Ensures this class is not mapped to a table.
+
+    Methods:
+        __tablename__(cls):
+        to_dict(self):
+        from_dict(cls, data):
+        __repr__(self):
+    """
     __abstract__ = True  # Ensures this class is not mapped to a table
 
     @declared_attr
@@ -32,7 +39,7 @@ class Base(DeclarativeBase):
         """
         Create an instance of the model from a dictionary.
         Automatically maps dictionary keys to model attributes.
-        
+
         Args:
             data (dict): A dictionary containing the data to populate the instance.
 
@@ -52,7 +59,8 @@ class Base(DeclarativeBase):
                 missing_fields.append(column_name)
 
         if missing_fields:
-            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+            raise ValueError(
+                f"Missing required fields: {', '.join(missing_fields)}")
 
         # Set attributes from the provided data
         for key, value in data.items():
@@ -60,7 +68,6 @@ class Base(DeclarativeBase):
                 setattr(instance, key, value)
 
         return instance
-
 
     def __repr__(self):
         """

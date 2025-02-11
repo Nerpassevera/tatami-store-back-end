@@ -1,3 +1,55 @@
+"""
+This module defines the routes for product-related operations in the application.
+
+Routes:
+    - GET /products/:
+        Retrieve all products with optional filters for search, category, order, and price.
+        Query Parameters:
+            - search (str): Search term to filter products by name or description.
+            - category (str): Category to filter products.
+            - order (str): Order by field (e.g., price, name).
+            - price (float): Maximum price to filter products.
+        Responses:
+            - 200: List of products matching the filters.
+            - 400: Invalid query parameter value.
+            - 500: Unexpected server error.
+
+    - GET /products/<product_id>:
+        Path Parameters:
+            - product_id (UUID): Unique identifier of the product.
+        Responses:
+            - 200: Product details.
+            - 404: Product not found.
+            - 500: Unexpected server error.
+
+    # Future Admin portal implementation routes:
+    # - POST /products/:
+    #     Request Body:
+    #         - JSON object with product details.
+    #     Responses:
+    #         - 201: Product created successfully.
+    #         - 400: Invalid request data.
+    #         - 500: Unexpected server error.
+
+    # - PUT /products/<product_id>:
+    #     Path Parameters:
+    #         - product_id (UUID): Unique identifier of the product.
+    #     Request Body:
+    #         - JSON object with updated product details.
+    #     Responses:
+    #         - 200: Product updated successfully.
+    #         - 400: Invalid request data.
+    #         - 500: Unexpected server error.
+
+    # - DELETE /products/<product_id>:
+    #     Path Parameters:
+    #         - product_id (UUID): Unique identifier of the product.
+    #     Responses:
+    #         - 200: Product deleted successfully.
+    #         - 400: Invalid request data.
+    #         - 500: Unexpected server error.
+"""
+
 from uuid import UUID
 from flask import Blueprint, request, jsonify
 from app.services.product_service import (

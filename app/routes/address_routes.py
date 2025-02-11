@@ -1,5 +1,39 @@
+"""
+This module defines the routes for address-related operations in the application.
+
+Routes:
+    - POST /addresses/:
+        Request Body: JSON containing address details.
+        Responses:
+            201: Address created successfully.
+            400: Error occurred during address creation.
+
+    - GET /addresses/user/<user_id>:
+        URL Parameters:
+            user_id (str): The ID of the user.
+        Responses:
+            200: List of addresses for the user.
+            400: Error occurred during address retrieval.
+
+    - PUT /addresses/<address_id> (commented out):
+        Endpoint to update an address.
+        URL Parameters:
+            address_id (str): The ID of the address to update.
+        Request Body: JSON containing updated address details.
+        Responses:
+            200: Address updated successfully.
+            400: Error occurred during address update.
+
+    - DELETE /addresses/<address_id> (commented out):
+        Endpoint to delete an address.
+        URL Parameters:
+            address_id (str): The ID of the address to delete.
+        Responses:
+            200: Address deleted successfully.
+            400: Error occurred during address deletion.
+"""
+
 import traceback
-from uuid import UUID
 from flask import Blueprint, request, jsonify
 from app.services.address_service import (
     create_address,
@@ -11,6 +45,7 @@ from app.services.auth_services import token_required
 
 
 bp = Blueprint("address_bp", __name__, url_prefix="/addresses")
+
 
 @bp.route("/", methods=["POST"])
 def create_address_endpoint():

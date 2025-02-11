@@ -1,10 +1,26 @@
-from uuid import UUID
+"""
+This module defines the routes for handling orders in the application.
+
+Routes:
+    - GET /orders/cart-items/<user_id>: Retrieve all cart items for a user along with their respective product prices.
+    - POST /orders/: Place an order for a user.
+    - GET /orders/<user_id>: Retrieve all orders for a specific user with optional filters.
+
+Functions:
+    - retrieve_cart_items(user_id): Retrieve all cart items for a user along with their respective product prices.
+    - create_order(): Place an order for a user.
+    - retrieve_user_orders(user_id): Retrieve all orders for a specific user with optional filters.
+
+Exceptions:
+    - ApplicationError: Custom application error for handling specific exceptions.
+"""
+
 from flask import Blueprint, request, jsonify
 from app.services.order_service import (
     get_cart_items_with_prices,
     place_order,
     get_user_orders,
-    change_order_status
+    # change_order_status
 )
 from app.exceptions import ApplicationError
 from app.services.auth_services import token_required
@@ -86,7 +102,6 @@ def retrieve_user_orders(user_id):
         JSON response with the user's orders or an error message.
     """
     try:
-        # Extract filters from query parameters
         start_date = request.args.get("start_date")
         end_date = request.args.get("end_date")
         min_total = request.args.get("min_total", type=float)

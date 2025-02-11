@@ -1,26 +1,6 @@
-"""
-Attributes:
-    __tablename__ (str): The name of the table in the database.
-    order_id (Mapped[int]): The ID of the order this item belongs to.
-    product_id (Mapped[int]): The ID of the product in this order item.
-    quantity (Mapped[int]): The quantity of the product in this order item.
-    unit_price (Mapped[float]): The unit price of the product in this order item.
-    order (Mapped["Order"]): The relationship to the Order model.
-    product (Mapped["Product"]): The relationship to the Product model.
-Methods:
-    calculate_subtotal() -> float:
-    to_dict() -> dict:
-    from_dict(cls, data: dict) -> "OrderItem":
-    update_quantity(new_quantity: int):
-    delete():
-    __repr__() -> str:
-        Return a string representation of the OrderItem instance.
-"""
-
 from typing import TYPE_CHECKING
-from uuid import UUID
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, Integer, Float
 
 from app.db import db
@@ -32,7 +12,17 @@ if TYPE_CHECKING:
 
 class OrderItem(db.Model):
     """
-    Represents an item in an order, including the product, quantity, and unit price.
+    Represents an item in an order.
+    Attributes:
+        order_id (int): The ID of the order this item belongs to.
+        product_id (int): The ID of the product.
+        quantity (int): The quantity of the product in the order.
+        price (float): The price of the product in the order.
+    Relationships:
+        order (Order): The order this item belongs to.
+        product (Product): The product associated with this item.
+    Methods:
+        __repr__(): Returns a string representation of the OrderItem instance.
     """
     __tablename__ = "order_items"
 
@@ -52,86 +42,6 @@ class OrderItem(db.Model):
     product: Mapped["Product"] = relationship("Product")
 
     # Methods
-
-    @validates("quantity")
-    def validate_quantity(self, key, quantity):
-        """
-        Validate the quantity of the order item.
-
-        Args:
-            key (str): The key being validated.
-            quantity (int): The quantity to validate.
-
-        Returns:
-            int: The validated quantity.
-
-        Raises:
-            ValueError: If the quantity is less than 1.
-        """
-        if quantity < 1:
-            raise ValueError("Quantity must be at least 1.")
-        return quantity
-
-    def calculate_subtotal(self) -> float:
-        """
-        Calculate the subtotal for this order item (quantity * unit price).
-
-        Returns:
-            float: The subtotal for this item.
-        """
-        return self.quantity * self.price
-
-    # def to_dict(self) -> dict:
-    #     """
-    #     Convert the order item to a dictionary representation.
-
-    #     Returns:
-    #         dict: A dictionary containing the order item details.
-    #     """
-    #     return {
-    #         "order_id": self.order_id,
-    #         "product_id": self.product_id,
-    #         "quantity": self.quantity,
-    #         "unit_price": self.price,
-    #         "subtotal": self.calculate_subtotal(),
-    #     }
-
-    # @classmethod
-    # def from_dict(cls, data: dict) -> "OrderItem":
-    #     """
-    #     Create an OrderItem instance from a dictionary.
-
-    #     Args:
-    #         data (dict): A dictionary containing order item details.
-
-    #     Returns:
-    #         OrderItem: An instance of OrderItem.
-    #     """
-    #     return cls(
-    #         order_id=UUID(data["order_id"]),
-    #         product_id=UUID(data["product_id"]),
-    #         quantity=data["quantity"],
-    #         price=data["price"],
-    #     )
-
-    # ?
-    def update_quantity(self, new_quantity: int):
-        """
-        Update the quantity of the order item.
-
-        Args:
-            new_quantity (int): The new quantity to set.
-        """
-        self.quantity = new_quantity
-        db.session.commit()
-
-    def delete(self):
-        """
-        Delete the order item from the database.
-        """
-        db.session.delete(self)
-        db.session.commit()
-
     def __repr__(self) -> str:
         return f"""<OrderItem(order_id={self.order_id},
                     product_id={self.product_id},

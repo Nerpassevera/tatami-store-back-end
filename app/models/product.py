@@ -1,37 +1,7 @@
-"""
-Product Model
-
-This module defines the Product model for the tatami-store-back-end application.
-It includes fields for product details such as name, description, price, stock quantity,
-and image URL.
-It also defines relationships with OrderItem, CartItem, and ProductCategory models.
-
-Classes:
-    Product: Represents a product in the store.
-
-Fields:
-    id (UUID): The unique identifier for the product.
-    name (str): The name of the product.
-    description (str): A description of the product.
-    price (float): The price of the product.
-    stock (int): The quantity of the product in stock.
-    image_url (str): The URL of the product's image.
-
-Relationships:
-    order_items (list[OrderItem]): The order items associated with the product.
-    cart_items (list[CartItem]): The cart items associated with the product.
-    categories (list[ProductCategory]): The categories associated with the product.
-
-Methods:
-    to_dict() -> dict: Convert the product to a dictionary representation.
-    update_stock(quantity: int) -> None: Update the stock quantity by a specified amount.
-    __repr__() -> str: Return a string representation of the product.
-"""
-
 from uuid import UUID, uuid4
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Float, Integer, Boolean
 
 from app.db import db
@@ -45,27 +15,19 @@ if TYPE_CHECKING:
 class Product(db.Model):
     """
     Represents a product in the store.
-
-        Attributes:
-            id (UUID): The unique identifier for the product.
-            name (str): The name of the product.
-            description (str, optional): A description of the product.
-            price (float): The price of the product.
-            stock (int): The quantity of the product in stock.
-            image_url (str, optional): The URL of the product's image.
-            is_active (bool): Flag indicating whether the product is active.
-            order_items (list[OrderItem]): The order items associated with the product.
-            cart_items (list[CartItem]): The cart items associated with the product.
-            categories (list[ProductCategory]): The categories associated with the product.
-
-
-        Methods:
-            to_dict() -> dict:
-                Convert the product to a dictionary representation.
-            update_stock(quantity: int) -> None:
-                Update the stock quantity by a specified amount.
-            __repr__() -> str:
-                Return a string representation of the product."""
+    Attributes:
+        id (UUID): The unique identifier for the product.
+        name (str): The name of the product. Must be unique and not null.
+        description (str): A description of the product. Can be null.
+        price (float): The price of the product. Must not be null.
+        stock (int): The number of items in stock. Must not be null.
+        image_url (str): The URL of the product's image. Can be null.
+        is_active (bool): Indicates whether the product is active. Defaults to True and must not be null.
+    Relationships:
+        order_items (list[OrderItem]): The order items associated with the product.
+        cart_items (list[CartItem]): The cart items associated with the product.
+        categories (list[ProductCategory]): The categories associated with the product.
+    """
     __tablename__ = "products"
 
     # Fields
@@ -75,7 +37,8 @@ class Product(db.Model):
     price: Mapped[float] = mapped_column(Float, nullable=False)
     stock: Mapped[int] = mapped_column(Integer, nullable=False)
     image_url: Mapped[str] = mapped_column(String(2048), nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False)
 
     # Relationships
     order_items: Mapped[list["OrderItem"]] = relationship(
@@ -87,80 +50,3 @@ class Product(db.Model):
     categories: Mapped[list["ProductCategory"]] = relationship(
         "ProductCategory", back_populates="product", lazy="select", cascade="all, delete"
     )
-
-    @validates("stock")
-    def validate_stock(self, key, value):
-        """
-        Validate that stock is not negative.
-        
-        Args:
-            key (str): The name of the field being validated.
-            value (int): The value to validate.
-
-        Returns:
-            int: The validated value.
-
-        Raises:
-            ValueError: If the stock is negative.
-        """
-        if value < 0:
-            raise ValueError("Stock quantity cannot be negative")
-        return value
-
-    # def to_dict(self) -> dict:
-    #     """Convert the product to a dictionary representation."""
-    #     return {
-    #         "id": str(self.id),
-    #         "name": self.name,
-    #         "description": self.description,
-    #         "price": self.price,
-    #         "stock": self.stock,
-    #         "is_active": self.is_active,
-    #     }
-
-    def update_stock(self, stock: int) -> None:
-        """Update the stock quantity by a specified amount.
-
-        Args:
-            quantity (int): The amount to adjust the stock by (positive or negative).
-
-        Raises:
-            ValueError: If the resulting stock quantity would be negative.
-        """
-        if self.stock + stock < 0:
-            raise ValueError("Stock quantity cannot be negative.")
-        self.stock += stock
-
-    # def __repr__(self) -> str:
-    #     return (
-    #         f"<Product(name={self.name}, price={self.price}, "
-    #         f"stock={self.stock})>"
-    #     )
-
-    # @classmethod
-    # def from_dict(cls, data: dict) -> "Product":
-    #     """
-    #     Create an instance of the class from a dictionary of data.
-        
-    #     Args:
-    #         data (dict): A dictionary containing product data.
-
-    #     Returns:
-    #         Product: An instance of the Product class.
-
-    #     Raises:
-    #         ValueError: If a required field is missing.
-    #     """
-    #     required_fields = ["name", "price", "stock"]
-    #     missing_fields = [field for field in required_fields if field not in data]
-    #     if missing_fields:
-    #         raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-        
-    #     return cls(
-    #         name=data["name"],
-    #         description=data.get("description"),
-    #         price=data["price"],
-    #         stock=data["stock"] or 0,
-    #         image_url=data.get("image_url"),
-    #         is_active=data.get("is_active", True),
-    #     )

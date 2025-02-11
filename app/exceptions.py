@@ -31,7 +31,7 @@ class EmptyCartError(ApplicationError):
     Attributes:
         user_id (UUID): The ID of the user with the empty cart.
     """
-    def __init__(self, user_id):
+    def __init__(self, user_id: UUID):
         super().__init__(f"Cart for user ID {user_id} is empty. Cannot place an order.")
 
 
@@ -43,7 +43,7 @@ class AddressOwnershipError(ApplicationError):
         address_id (int): The ID of the address.
         user_id (UUID): The ID of the user attempting to use the address.
     """
-    def __init__(self, address_id: int, user_id):
+    def __init__(self, address_id: int, user_id: UUID):
         super().__init__(
             f"Address with ID {address_id} does not belong to user ID {user_id}. "
             "Please provide a valid address."

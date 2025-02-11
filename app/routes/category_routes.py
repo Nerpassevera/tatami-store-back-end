@@ -1,3 +1,23 @@
+"""
+This module defines the routes for category-related operations in the application.
+
+Routes:
+- GET /categories/:
+    - retrieve_all_categories: Retrieve all categories.
+- GET /categories/<category_id>:
+    - retrieve_category: Retrieve a single category by its ID.
+
+Commented Routes for future Admin portal implementation:
+- POST /categories/:
+    - create_category_endpoint: Create a new category.
+- POST /categories/<product_id>/<category_id>:
+    - assign_product_to_category: Assign a product to a category.
+- PUT /categories/<category_id>:
+    - update_category_endpoint: Update an existing category by its ID.
+- DELETE /categories/<category_id>:
+    - delete_category_endpoint: Delete a category by its ID.
+"""
+
 from uuid import UUID
 from flask import Blueprint, jsonify
 from app.services.category_service import (

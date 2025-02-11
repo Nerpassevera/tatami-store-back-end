@@ -1,9 +1,32 @@
-from uuid import UUID
+"""
+This module defines the routes for user-related operations in the application.
+
+Routes:
+    - POST /users/:
+
+    - GET /users/<user_id>:
+        Retrieves a single user by ID.
+
+    - GET /users/ (commented out for future implementation):
+        Retrieves all users.
+            Response: JSON response containing all users.
+
+    - PUT /users/<user_id> (commented out for future implementation):
+        Updates a user's information.
+            user_id: The ID of the user to update.
+            JSON response containing the updated user or an error message.
+
+    - DELETE /users/<user_id> (commented out for future implementation):
+        Deletes a user by ID.
+            user_id: The ID of the user to delete.
+            JSON response indicating the result of the operation or an error message.
+"""
 from flask import Blueprint, request, jsonify
 from app.services.user_service import *
 from app.services.auth_services import token_required
 
 bp = Blueprint("user_bp", __name__, url_prefix="/users")
+
 
 @bp.route("/", methods=["POST"])
 def create_user():
@@ -20,10 +43,8 @@ def create_user():
     Raises:
         Exception: In case of a failed transaction.
     """
-    # Get data from the request
     user_data = request.json
 
-    # Create the user with a cart
     new_user = create_user_with_cart(user_data)
 
     return jsonify({"id": str(new_user.id), "message": "User created with cart!"}), 201
@@ -39,7 +60,6 @@ def create_user():
 #         Response: JSON response containing all users.
 #     """
 #     users = get_all_users()
-#     # Convert each user object to a dictionary representation
 #     users_data = [user.to_dict() for user in users]
 #     return jsonify(users_data), 200
 

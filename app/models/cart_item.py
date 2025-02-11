@@ -1,24 +1,7 @@
-"""
-CartItem model represents an item in a shopping cart.
-
-Attributes:
-    __tablename__ (str): The name of the table in the database.
-    cart_id (UUID): The ID of the cart this item belongs to. Part of the composite primary key.
-    product_id (UUID): The ID of the product. Part of the composite primary key.
-    quantity (int): The quantity of the product in the cart.
-    cart (Cart): The cart this item belongs to.
-    product (Product): The product details.
-
-Methods:
-    to_dict(): Converts the CartItem instance to a dictionary.
-    from_dict(data): Creates a CartItem instance from a dictionary.
-    __repr__(): Returns a string representation of the CartItem instance.
-"""
-
 from uuid import UUID
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, Integer
 
 from app.db import db
@@ -31,19 +14,15 @@ if TYPE_CHECKING:
 class CartItem(db.Model):
     """
     Represents an item in a shopping cart.
-
     Attributes:
-        __tablename__ (str): The name of the database table.
-        cart_id (UUID): The ID of the cart this item belongs to. Part of the composite primary key.
-        product_id (UUID): The ID of the product. Part of the composite primary key.
+        __tablename__ (str): The name of the table in the database.
+        cart_id (UUID): The ID of the cart to which this item belongs.
+        product_id (UUID): The ID of the product.
         quantity (int): The quantity of the product in the cart.
-        cart (Cart): The cart this item belongs to.
-        product (Product): The product associated with this cart item.
-
+        cart (Cart): The cart to which this item belongs.
+        product (Product): The product associated with this item.
     Methods:
-        to_dict(): Converts the CartItem instance to a dictionary.
-        from_dict(data): Creates a CartItem instance from a dictionary.
-        __repr__(): Returns a string representation of the CartItem instance.
+        from_dict(data):
     """
     __tablename__ = "cart_items"
 
@@ -60,63 +39,17 @@ class CartItem(db.Model):
     cart: Mapped["Cart"] = relationship("Cart", back_populates="items")
     product: Mapped["Product"] = relationship("Product")
 
-    # Methods
-
-    @validates("quantity")
-    def validate_quantity(self, key, quantity):
-        """
-        Validate the quantity of the cart item.
-
-        Args:
-            key (str): The name of the attribute being validated.
-            quantity (int): The quantity to be validated.
-
-        Returns:
-            int: The validated quantity.
-
-        Raises:
-            ValueError: If the quantity is less than 1.
-        """
-        if quantity < 1:
-            raise ValueError("Quantity must be at least 1.")
-        return quantity
-
-    def to_dict(self):
-        """
-        Converts the CartItem instance to a dictionary representation.
-
-        Returns:
-            dict: A dictionary containing the cart item details with the following keys:
-                - "cart_id" (str): The ID of the cart.
-                - "product_id" (str): The ID of the product.
-                - "quantity" (int): The quantity of the product in the cart.
-                - "product_details" (dict or None): A dictionary containing the product details if available, otherwise None.
-        """
-        return {
-            "cart_id": str(self.cart_id),
-            "product_id": str(self.product_id),
-            "quantity": self.quantity,
-            "product_details": self.product.to_dict() if self.product else None,
-        }
-
-    def __repr__(self):
-        return f"""<CartItem(cart_id={self.cart_id},
-                    product_id={self.product_id},
-                    quantity={self.quantity})>"""
-
     @classmethod
     def from_dict(cls, data):
         """
         Create an instance of the class from a dictionary.
-
         Args:
             data (dict): A dictionary containing the keys 'cart_id', 'product_id', and 'quantity'.
-
         Returns:
             An instance of the class.
-
         Raises:
-            ValueError: If any of the required fields ('cart_id', 'product_id', 'quantity') are missing from the dictionary.
+            ValueError: If any of the required fields ('cart_id', 'product_id', 'quantity') 
+            are missing from the dictionary.
         """
         try:
             return cls(

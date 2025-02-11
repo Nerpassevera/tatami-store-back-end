@@ -1,7 +1,3 @@
-"""
-This module defines the Order model and related functionality.
-"""
-
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from enum import Enum as PyEnum
@@ -16,6 +12,7 @@ if TYPE_CHECKING:
     from .user import User
     from .order_item import OrderItem
     from .address import Address
+
 
 class OrderStatus(PyEnum):
     """
@@ -33,34 +30,33 @@ class OrderStatus(PyEnum):
 
 class Order(db.Model):
     """
-    Represents an order in the tatami store.
-
+    Represents an order in the system.
     Attributes:
         id (UUID): The unique identifier for the order.
-        user_id (String): The unique identifier for the user who placed the order.
-        total_amount (Numeric): The total amount for the order.
+        user_id (str): The ID of the user who placed the order.
+        address_id (int): The ID of the address associated with the order.
+        total_amount (Decimal): The total amount of the order.
         order_date (datetime): The date and time when the order was placed.
         status (OrderStatus): The current status of the order.
-
     Relationships:
         user (User): The user who placed the order.
-        items (list[OrderItem]): The items included in the order.
-
+        address (Address): The address associated with the order.
+        order_items (list[OrderItem]): The items included in the order.
     Methods:
-        to_dict(): Converts the order instance to a dictionary.
-        __repr__(): Returns a string representation of the order instance.
-        from_dict(data): Creates an order instance from a dictionary.
-
-    Raises:
-        ValueError: If required fields are missing or if an invalid status value is provided.
+        validate_total_amount(key, value):
+            Validates that the total amount is not negative.
+        from_dict(data):
+            Creates an instance of the class from a dictionary of data.
     """
+
     __tablename__ = "orders"
 
     # Fields
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     user_id: Mapped[String] = mapped_column(
         ForeignKey("users.id"), nullable=False)
-    address_id: Mapped[int] = mapped_column(ForeignKey("addresses.id"), nullable=False)
+    address_id: Mapped[int] = mapped_column(
+        ForeignKey("addresses.id"), nullable=False)
     total_amount: Mapped[Numeric] = mapped_column(
         Numeric(10, 2), nullable=False, default=0.00)
     order_date: Mapped[datetime] = mapped_column(
@@ -94,33 +90,6 @@ class Order(db.Model):
         if value < 0:
             raise ValueError("Total amount cannot be negative.")
         return value
-
-    # Methods
-    # def to_dict(self):
-    #     """
-    #     Converts the Order object to a dictionary representation.
-
-    #     Returns:
-    #         dict: A dictionary containing the order details with the following keys:
-    #             - id (str): The unique identifier of the order.
-    #             - user_id (str): The unique identifier of the user who placed the order.
-    #             - total_amount (float): The total amount of the order.
-    #             - order_date (str): The date the order was placed in ISO 8601 format.
-    #             - status (str): The current status of the order.
-    #             - items (list): A list of dictionaries representing the items in the order.
-    #     """
-    #     return {
-    #         "id": str(self.id),
-    #         "user_id": str(self.user_id),
-    #         "address_id": self.address_id,
-    #         "total_amount": float(self.total_amount),
-    #         "order_date": self.order_date.isoformat(),
-    #         "status": self.status.value,
-    #         "items": [item.to_dict() for item in self.items],
-    #     }
-
-    # def __repr__(self):
-    #     return f"<Order {self.id} - Status: {self.status.value}>"
 
     @classmethod
     def from_dict(cls, data):
